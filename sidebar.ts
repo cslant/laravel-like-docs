@@ -5,6 +5,18 @@ module.exports = {
       type: 'category',
       link: {
         type: 'generated-index',
+        description: 'This section will give you a brief overview of the project and its features.',
+      },
+      label: 'Prologue',
+      items: [
+        'prologue/releases',
+      ],
+      collapsed: false,
+    },
+    {
+      type: 'category',
+      link: {
+        type: 'generated-index',
         description: 'Please check this section if you have any problems with the bot or you want to request a new feature.',
       },
       label: 'Support',
