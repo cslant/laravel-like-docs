@@ -1,6 +1,10 @@
 module.exports = {
-  telegramGitNotifierSidebar: [
-    'introduction',
+  LaravelLikePackageSidebar: [
+    {
+      type: 'doc',
+      id: 'introduction',
+      label: '👋 Introduction',
+    },
     {
       type: 'category',
       link: {
