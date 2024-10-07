@@ -1,3 +1,10 @@
+---
+title: Release Notes | Laravel Like
+description: Release notes and upgrade instructions for Laravel Like projects. Check the release notes and upgrade instructions for Laravel Like projects. See the release notes and upgrade instructions for Laravel Like projects.
+keywords: ['laravel like', 'release notes', 'upgrade instructions', 'laravel like releases', 'laravel like upgrade instructions']
+tags: ['Release notes', 'Upgrade instructions', 'Releases', 'Prologue']
+---
+
 # 🚀 Release Notes
 
 Check release notes and upgrade instructions for the following Laravel Like projects:

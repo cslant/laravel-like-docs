@@ -9,7 +9,11 @@ module.exports = {
       },
       label: 'Prologue',
       items: [
-        'prologue/releases',
+        {
+          type: 'doc',
+          id: 'prologue/releases',
+          label: '🚀 Release Notes',
+        },
       ],
       collapsed: false,
     },
@@ -21,8 +25,16 @@ module.exports = {
       },
       label: 'Support',
       items: [
-        'support/issues',
-        'support/feature-requests',
+        {
+          type: 'doc',
+          id: 'support/feature-requests',
+          label: '🚀 Feature Requests',
+        },
+        {
+          type: 'doc',
+          id: 'support/issues',
+          label: '🐛 Issues',
+        },
       ],
       collapsed: false,
     },
