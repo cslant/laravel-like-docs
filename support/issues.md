@@ -2,7 +2,7 @@
 title: Issues | Laravel Like
 description: Issues and bug reports for the Laravel Like projects. Report issues and bugs for the Laravel Like projects. Get the list of all issues available in the Laravel Like projects.
 keywords: ['laravel like', 'issues', 'bug reports', 'report issues', 'issues for laravel like']
-tags: ['Issues', 'Bug reports', 'Report issues']
+tags: ['Issues', 'Bug reports', 'Report issues', 'Laravel Like Issues', 'Laravel Like Bug Reports']
 ---
 
 # 📢 Issues
