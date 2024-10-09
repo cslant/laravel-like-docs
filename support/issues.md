@@ -8,6 +8,7 @@ tags: ['Issues', 'Bug reports', 'Report issues', 'Laravel Like Issues', 'Laravel
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" data-rh="true" href="/laravel-like/support/issues" />
 </head>
 
 # 📢 Issues

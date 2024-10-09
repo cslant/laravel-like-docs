@@ -20,13 +20,22 @@ function HomepageHeader() {
     <>
       <Head>
         <title>Homepage | Laravel Like Package | CSlant Documentation</title>
-        <link rel="canonical" href="https://docs.cslant.com/laravel-like" />
+        <link rel="canonical" href="https://docs.cslant.com/laravel-like/" />
         <meta name="description"
               content="Laravel Like package is the interaction for User 👍 like, 👎 dislike, and love ❤️ features for Laravel Application. This package is easy to use and can be integrated into any Laravel application."
               data-rh="true" />
         <meta name="keywords"
               content="Laravel, Like, Dislike, Love, Laravel Like, Laravel Dislike, Laravel Love, Laravel Like Package"
               data-rh="true" />
+        <meta name="author" content="CSlant" data-rh="true" />
+        <meta name="robots" content="index, follow" data-rh="true" />
+        <meta property="og:site_name" content="Laravel Like Package Documentation" data-rh="true" />
+        <meta property="og:type" content="website" data-rh="true" />
+        <meta property="og:title" content="Laravel Like Package Documentation" data-rh="true" />
+        <meta property="og:description"
+              content="Laravel Like package is the interaction for User 👍 like, 👎 dislike, and love ❤️ features for Laravel Application. This package is easy to use and can be integrated into any Laravel application."
+              data-rh="true" />
+        <meta property="og:url" content="https://docs.cslant.com/laravel-like/" data-rh="true" />
       </Head>
       <header className="main_header">
         <div className="container">

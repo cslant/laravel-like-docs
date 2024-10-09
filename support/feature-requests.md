@@ -8,6 +8,7 @@ tags: ['Feature Requests', 'New features', 'Requests', 'Laravel Like Feature']
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" data-rh="true" href="/laravel-like/support/feature-requests" />
 </head>
 
 # 🔥 Feature Requests
