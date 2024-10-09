@@ -5,6 +5,11 @@ keywords: ['laravel like', 'release notes', 'upgrade instructions', 'laravel lik
 tags: ['Release notes', 'Upgrade instructions', 'Releases', 'Prologue', 'Laravel Like Prologue', 'Laravel Like Release Notes']
 ---
 
+<head>
+  <meta name="robots" content="index,follow" />
+  <meta name="author" content="CSlant" />
+</head>
+
 # 🚀 Release Notes
 
 Check release notes and upgrade instructions for the following Laravel Like projects:

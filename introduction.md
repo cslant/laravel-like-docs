@@ -6,6 +6,11 @@ tags: ['Introduction', 'Laravel Like', 'Configure', 'Configure laravel like', 'I
 image: images/telegram-git-notifier-background.svg
 ---
 
+<head>
+  <meta name="robots" content="index,follow" />
+  <meta name="author" content="CSlant" />
+</head>
+
 # Introduction
 
 Laravel Like.

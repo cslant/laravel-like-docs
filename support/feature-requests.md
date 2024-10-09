@@ -5,6 +5,11 @@ keywords: ['laravel like', 'feature requests', 'new features', 'request new feat
 tags: ['Feature Requests', 'New features', 'Requests', 'Laravel Like Feature']
 ---
 
+<head>
+  <meta name="robots" content="index,follow" />
+  <meta name="author" content="CSlant" />
+</head>
+
 # 🔥 Feature Requests
 
 If you have any feature requests, please open an issue with the `feature request` label on
