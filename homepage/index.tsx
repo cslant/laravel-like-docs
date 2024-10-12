@@ -38,6 +38,8 @@ function HomepageHeader() {
               content="Laravel Like package is the interaction for User 👍 like, 👎 dislike, and love ❤️ features for Laravel Application. This package is easy to use and can be integrated into any Laravel application."
               data-rh="true" />
         <meta property="og:url" content="https://docs.cslant.com/laravel-like/" data-rh="true" />
+        <meta data-rh="true" property="og:image" content="/images/laravel-like-docs-thumb.png" />
+        <meta data-rh="true" name="twitter:image" content="/images/laravel-like-docs-thumb.png" />
       </Head>
       <header className="main_header">
         <div className="container">
