@@ -8,7 +8,7 @@ This repository contains the documentation for the Laravel Like projects. The La
 
 **Documentation is available at [https://docs.cslant.com/laravel-like/](https://docs.cslant.com/laravel-like/).**
 
-![laravel-like-thumb-min.png](assets/public/images/laravel-like-thumb-min.png)
+![laravel-like-thumb-min.png](assets/public/images/laravel-like-docs.webp)
 
 --- 
 
