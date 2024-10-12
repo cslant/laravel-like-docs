@@ -51,14 +51,14 @@ function HomepageHeader() {
               <p className="hero__subtitle">{description}</p>
               <p className="hero__subDescription">{subDescription}</p>
               <div className="buttons">
-                <Link className="button button--info button--lg" to={startButtonLink}>
+                <Link className="button button--success button--lg" to={startButtonLink}>
                   {startButtonLabel}
                 </Link>
               </div>
             </div>
             <div className={clsx("col col--5")}>
               <div className="hero__image">
-                <img src="/images/laravel-like-docs.webp" alt="Laravel Like Package" />
+                <img src="/images/laravel-like-docs.webp" alt="CSlant Laravel Like Package" />
               </div>
             </div>
           </div>
@@ -70,7 +70,7 @@ function HomepageHeader() {
 
 export default function LaravelLikePackageHome(): JSX.Element {
   return (
-    <Layout title="Home Page" description="Laravel Like Package Documentation">
+    <Layout title="Home Page" description="Laravel Like Package Cslant Documentation">
       <HomepageHeader />
       <main>
         <section className="home-page__features">
