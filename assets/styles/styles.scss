@@ -37,4 +37,12 @@
     text-align: center;
     margin: auto;
   }
+
+  .hero {
+    &__subDescription {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+  }
 }

@@ -2,19 +2,21 @@ import Link from "@docusaurus/Link";
 import Heading from "@theme/Heading";
 import Layout from "@theme/Layout";
 
-import "./styles.scss";
+import "../assets/styles/styles.scss";
 import Head from "@docusaurus/core/lib/client/exports/Head";
+import clsx from "clsx";
 
 const HeaderData = {
   title: "Documentation For Laravel Like Package",
   description:
     "The interaction for User 👍 like, 👎 dislike, and love ❤️ features for Laravel Application.",
+  subDescription: "We provide easy to use and can be integrated into any Laravel application. Get started with Laravel Like Package.",
   startButtonLink: "/laravel-like/introduction",
   startButtonLabel: "Get Started",
 };
 
 function HomepageHeader() {
-  const { title, description, startButtonLink, startButtonLabel } = HeaderData;
+  const { title, description, subDescription, startButtonLink, startButtonLabel } = HeaderData;
   
   return (
     <>
@@ -45,10 +47,16 @@ function HomepageHeader() {
                 {title}
               </Heading>
               <p className="hero__subtitle">{description}</p>
+              <p className="hero__subDescription">{subDescription}</p>
               <div className="buttons">
                 <Link className="button button--info button--lg" to={startButtonLink}>
                   {startButtonLabel}
                 </Link>
+              </div>
+            </div>
+            <div className={clsx("col col--5")}>
+              <div className="hero__image">
+                <img src="/images/laravel-like-docs.webp" alt="Laravel Like Package" />
               </div>
             </div>
           </div>
@@ -60,7 +68,8 @@ function HomepageHeader() {
 
 export default function LaravelLikePackageHome(): JSX.Element {
   return (
-    <Layout title="Home Page" description="Telegram Git Notifier Documentation"> <HomepageHeader />
+    <Layout title="Home Page" description="Laravel Like Package Documentation">
+      <HomepageHeader />
       <main>
         <section className="home-page__features">
           <div className="container">
