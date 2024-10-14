@@ -6,7 +6,7 @@ This repository contains the documentation for the Laravel Like projects. The La
 
 - [Laravel Like Package](https://github.com/cslant/laravel-like)
 
-**Documentation is available at [https://docs.cslant.com/laravel-like/](https://docs.cslant.com/laravel-like/).**
+**Documentation is available at [https://docs.cslant.com/laravel-like](https://docs.cslant.com/laravel-like).**
 
 ![laravel-like-thumb-min.png](assets/public/images/laravel-like-docs.webp)
 
