@@ -9,7 +9,8 @@ module.exports = {
       type: 'category',
       link: {
         type: 'generated-index',
-        description: 'This section will give you a brief overview of the project and its features.',
+        title: 'Prologue - Laravel Like Package',
+        description: 'This section will give you a brief overview of the project and its features. Let\'s get started with the Laravel Like Package.',
       },
       label: 'Prologue',
       items: [
@@ -24,8 +25,9 @@ module.exports = {
     {
       type: 'category',
       link: {
+        title: 'Support - Laravel Like Package',
         type: 'generated-index',
-        description: 'Please check this section if you have any problems with the bot or you want to request a new feature.',
+        description: 'Please check this section if you have any problems with the bot or you want to request a new feature. We will be happy to help you!',
       },
       label: 'Support',
       items: [
@@ -46,7 +48,8 @@ module.exports = {
       type: 'category',
       link: {
         type: 'generated-index',
-        description: 'Please check this section if you want to contribute to the Laravel Like project.',
+        title: 'GitHub Source - Laravel Like Package',
+        description: 'Please check this section if you want to contribute to the Laravel Like project. We will be happy to accept your contributions. Let\'s make the package better together!',
       },
       label: 'GitHub Source',
       collapsed: false,
