@@ -25,6 +25,34 @@ module.exports = {
     {
       type: 'category',
       link: {
+        type: 'generated-index',
+        title: 'Getting Started - Laravel Like Package',
+        description: 'Let\'s get started with the Laravel Like Package.' +
+          'You can also find the installation guide and the configuration guide here.',
+      },
+      label: 'Getting Started',
+      items: [
+        {
+          type: 'doc',
+          id: 'getting-started/requirements',
+          label: '📋 Requirements',
+        },
+        {
+          type: 'doc',
+          id: 'getting-started/installation',
+          label: '🔧 Installation',
+        },
+        {
+          type: 'doc',
+          id: 'getting-started/configuration',
+          label: '🛠 Configuration',
+        },
+      ],
+      collapsed: false,
+    },
+    {
+      type: 'category',
+      link: {
         title: 'Support - Laravel Like Package',
         type: 'generated-index',
         description: 'Please check this section if you have any problems with the bot or you want to request a new feature. We will be happy to help you!',
