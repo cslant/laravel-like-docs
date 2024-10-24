@@ -53,6 +53,23 @@ module.exports = {
     {
       type: 'category',
       link: {
+        type: 'generated-index',
+        title: 'Development - Laravel Like Package',
+        description: 'This section will guide for the development of the Laravel Like Package. Let\'s get started with the development!',
+      },
+      label: 'Development',
+      items: [
+        {
+          type: 'doc',
+          id: 'development/laravel-like-flow',
+          label: '🌊 Laravel Like Flow',
+        },
+      ],
+      collapsed: false,
+    },
+    {
+      type: 'category',
+      link: {
         title: 'Support - Laravel Like Package',
         type: 'generated-index',
         description: 'Please check this section if you have any problems with the bot or you want to request a new feature. We will be happy to help you!',
