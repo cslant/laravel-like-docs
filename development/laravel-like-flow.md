@@ -47,12 +47,14 @@ erDiagram
     }
 ```
 
-Explanation of the ERD:
+:::info[Explanation of the ERD]
 
 - A `User` can like multiple `Post`s.
 - A `Post` can have multiple `Like`s.
 - A `User` can have multiple `Like`s.
 - A `Like` can be associated with a `User` and a `Post`.
+
+:::
 
 ## Laravel Like Flow
 
@@ -67,12 +69,14 @@ graph TD
     C -->|Liked on| B
 ```
 
-Explanation of the flow:
+:::info[Explanation of the flow]
 
 - A `User` likes a `Post`.
 - The `Post` is liked by the `User`.
 - The `Post` has a `Like`.
 - The `Like` is liked on the `User` and the `Post`.
+
+:::
 
 ## Conclusion
 
