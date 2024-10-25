@@ -24,7 +24,7 @@ Some interactions provided by the package are: **Like, Dislike, Love**.
 
 The **CSLant Laravel Like** package is not limited to default interactions like "Like," "Dislike," or "Love." This package is designed with high flexibility, allowing you to easily add more types of reactions based on your needs. 
 
-You are not restricted to the built-in reactions; you can create and define any type of interaction you prefer. 
+You're not restricted to the built-in reactions | you can create and define any type of interaction you prefer. 
 
 Additionally, _you can customize the model names and behavior, so you're **not tied to the term "Like."**_
     
