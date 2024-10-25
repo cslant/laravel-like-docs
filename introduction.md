@@ -38,5 +38,6 @@ Additionally, _you can customize the model names and behavior, so you're **not t
 
 - [Installation](getting-started/installation)
 - [Configuration](getting-started/configuration)
-- [Features](prologue/features)
+
+[//]: # (- [Features]&#40;prologue/features&#41;)
 - [Changelog](prologue/releases)
