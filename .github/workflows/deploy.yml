@@ -19,5 +19,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.REMOTE_PORT }}
           script: |
-            cd ${{ secrets.REPO_PATH }}
+            cd ${{ secrets.DOCS_RUNNER_PATH }}
             ./runner.sh a
