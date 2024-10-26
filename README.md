@@ -1,4 +1,4 @@
-# laravel-like-docs
+# laravel-like-docs repo
 
 This repository contains the documentation for the Laravel Like projects. The Laravel Like project is a set of Laravel packages that provide additional features and functionalities to Laravel projects.
 
