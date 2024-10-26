@@ -1,0 +1,17 @@
+.feature {
+  &__container {
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
+    transition: box-shadow 500ms;
+    padding: 24px 12px;
+  }
+}
+
+[data-theme="dark"] {
+  .feature {
+    &__container {
+      box-shadow: rgba(240, 237, 237, 0.24) 0 3px 8px;
+    }
+  }
+}

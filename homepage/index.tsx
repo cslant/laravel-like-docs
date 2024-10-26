@@ -5,6 +5,7 @@ import Layout from "@theme/Layout";
 import "../assets/styles/styles.scss";
 import Head from "@docusaurus/core/lib/client/exports/Head";
 import clsx from "clsx";
+import Feature from "@site/repos/laravel-like-docs/homepage/feature";
 
 const HeaderData = {
   title: "Documentation For Laravel Like Package",
@@ -75,7 +76,10 @@ export default function LaravelLikePackageHome(): JSX.Element {
       <main>
         <section className="home-page__features">
           <div className="container">
-            <div className="row home-page__container"></div>
+            <hr/>
+            <div className="row home-page__container">
+              <Feature/>
+            </div>
           </div>
         </section>
       </main>
