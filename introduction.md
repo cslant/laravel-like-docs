@@ -9,7 +9,6 @@ image: /images/laravel-like-docs-thumb.webp
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
-  <link rel="canonical" data-rh="true" href="/laravel-like/introduction" />
 </head>
 
 # Introduction
@@ -38,6 +37,4 @@ Additionally, _you can customize the model names and behavior, so you're **not t
 
 - [Installation](getting-started/installation)
 - [Configuration](getting-started/configuration)
-
-[//]: # (- [Features]&#40;prologue/features&#41;)
 - [Changelog](prologue/releases)

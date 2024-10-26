@@ -8,7 +8,6 @@ tags: ['Release notes', 'Upgrade instructions', 'Releases', 'Prologue', 'Laravel
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
-  <link rel="canonical" data-rh="true" href="/laravel-like/prologue/releases" />
 </head>
 
 # 🚀 Release Notes
