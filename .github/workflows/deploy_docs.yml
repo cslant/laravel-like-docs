@@ -19,4 +19,4 @@ jobs:
           port: ${{ secrets.REMOTE_PORT }}
           script: |
             cd ${{ secrets.DOCS_RUNNER_PATH }}
-            ./runner.sh a
+            ./runner.sh a &>/dev/null
