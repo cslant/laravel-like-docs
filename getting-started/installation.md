@@ -2,7 +2,7 @@
 title: Installation | Laravel Laravel Like
 description: Installation instructions for Laravel Like package. Install the package via composer, publish the config file, and migrate the database.
 keywords: ["Laravel Like", "installation", "install Laravel Like", 'get started', 'Laravel Like get started', 'composer', 'publish config', 'migrate database']
-tags: ["Installation", "Get Started", "Composer", "Publish Config", "Laravel Like", "Migrate Database", "Laravel Like Installation", "Interactions", "Likes", "Dislikes", "Favorites", "Stars", "Upvotes", "Downvotes", "Reactions", "Votes", "Laravel Like Package"]
+tags: ["Installation", "Get Started", "Composer", "Publish Config", "Laravel Like", "Migrate Database", "Laravel Like Installation", "Interactions", "Likes", "Dislikes", "Favorites", "Stars", "Upvotes", "Downvotes", "Reactions", "Votes", "Laravel Like Package", "Import Trait", "User Model", "Model"]
 ---
 
 <head>
@@ -37,20 +37,6 @@ You can publish all the necessary configuration and migration files by running t
 ```shell
 php artisan vendor:publish --provider="CSlant\LaravelLike\LikeServiceProvider"
 ```
-
-## Migrate the database
-
-After the configuration file has been published, you can run the migration:
-
-```shell
-php artisan migrate
-```
-
-The migration will create a `likes` table in your database. This table will store all the likes.
-
-That's it! You have successfully installed the Laravel Like package. 🎉
-
----
 
 This is the default content of the config file:
 
@@ -92,3 +78,67 @@ return [
     ],
 ];
 ```
+
+## Migrate the database
+
+After the configuration file has been published, you can run the migration:
+
+```shell
+php artisan migrate
+```
+
+The migration will create a `likes` table in your database. This table will store all the likes.
+
+## Import the trait in the appropriate model
+
+Please import the `HasLike` trait in your model to use the package.
+
+For example, you have a `Post` model, and you want to add likes to it. You can import the `HasLike` trait in the `Post` model.
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use CSlant\LaravelLike\HasLike;
+
+class Post extends Model
+{
+    use HasLike;
+    
+    // Your model code here
+}
+```
+
+## Import the trait in your User model
+
+After importing the `HasLike` trait in your model, you need to import the `UserHasInteraction` trait in your `User` model.
+
+### Why need to import the `UserHasInteraction` trait in the `User` model?
+
+The `UserHasInteraction` trait is used to define the relationship between the user and the interactions. 
+
+It is required to get the interactions for a user.
+
+Also, it provides the methods to interact with the interactions.
+
+### How to import the `UserHasInteraction` trait in the `User` model?
+
+You can import the `UserHasInteraction` trait in your `User` model like this:
+
+```php
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use CSlant\LaravelLike\UserHasInteraction;
+
+class User extends Authenticatable
+{
+    use UserHasInteraction;
+    
+    // Your model code here
+}
+```
+
+That's it! You have successfully installed the Laravel Like package. 🎉
+
+---
