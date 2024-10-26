@@ -76,7 +76,7 @@ export default function LaravelLikePackageHome(): JSX.Element {
       <main>
         <section className="home-page__features">
           <div className="container">
-            <hr/>
+            <hr style={{ margin: "2rem 0", border: "0.5px solid #eaecef" }} />
             <div className="row home-page__container">
               <Feature/>
             </div>
