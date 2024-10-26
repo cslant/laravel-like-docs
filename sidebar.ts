@@ -54,6 +54,23 @@ module.exports = {
       type: 'category',
       link: {
         type: 'generated-index',
+        title: 'Usage - Laravel Like Package',
+        description: 'This section will guide you on how to use the Laravel Like Package. Let\'s get started with your first interaction in Laravel project!',
+      },
+      label: 'Usage',
+      items: [
+        {
+          type: 'doc',
+          id: 'usage/change_default_interaction',
+          label: '🔄 Change Default Interaction',
+        },
+      ],
+      collapsed: false,
+    },
+    {
+      type: 'category',
+      link: {
+        type: 'generated-index',
         title: 'Development - Laravel Like Package',
         description: 'This section will guide for the development of the Laravel Like Package. Let\'s get started with the development!',
       },
