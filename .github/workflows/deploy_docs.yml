@@ -18,6 +18,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY_WEB_2 }}
           port: ${{ secrets.REMOTE_PORT_WEB_2 }}
           script: |
+            source "$HOME/.nvm/nvm.sh"
+            nvm use ${{ vars.GLOBAL_NVM_USE_VERSION }}
             cd ${{ secrets.DOCS_RUNNER_PATH }}
             ${{ secrets.DOCS_RUNNER_COMMAND }}
 
