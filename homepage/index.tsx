@@ -42,7 +42,7 @@ function HomepageHeader() {
         <meta data-rh="true" property="og:image" content="/images/laravel-like-docs-thumb.webp" />
         <meta data-rh="true" name="twitter:image" content="/images/laravel-like-docs-thumb.webp" />
       </Head>
-      <header className="main_header">
+      <header className="main_header laravel_like_header">
         <div className="container">
           <div className="row">
             <div className="col col--5 left_header">
