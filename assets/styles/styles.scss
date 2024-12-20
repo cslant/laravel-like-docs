@@ -36,6 +36,10 @@
   .left_header {
     text-align: center;
     margin: auto;
+
+    @media screen and (max-width: 996px) {
+      margin-bottom: 20px !important;
+    }
   }
 
   .hero {
