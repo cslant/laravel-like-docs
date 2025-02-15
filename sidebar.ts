@@ -64,6 +64,100 @@ module.exports = {
           id: 'usage/change_default_interaction',
           label: '🔄 Change Default Interaction',
         },
+        {
+          type: 'category',
+          link: {
+            type: 'generated-index',
+            title: 'Basic Operations',
+            description: 'This section will guide you on how to perform basic operations in the Laravel Like Package. Various operations like liking, unliking, and checking if interacted are covered here.',
+          },
+          label: 'Basic Operations',
+          items: [
+            {
+              type: 'doc',
+              id: 'usage/liking_content',
+              label: '👍 Liking Content',
+            },
+            {
+              type: 'doc',
+              id: 'usage/unliking_content',
+              label: '👎 Unliking Content',
+            },
+            {
+              type: 'doc',
+              id: 'usage/check_if_interacted',
+              label: '🔍 Check if Interacted',
+            },
+          ],
+          collapsed: false,
+        },
+        {
+          type: 'category',
+          link: {
+            type: 'generated-index',
+            title: 'User Traits and Interactions',
+            description: 'The guide will help you to understand the user traits and interactions in the Laravel Like Package.',
+          },
+          label: 'User Traits and Interactions',
+          items: [
+            {
+              type: 'doc',
+              id: 'usage/user_interaction_trait',
+              label: '👤 User Interaction Trait',
+            },
+            {
+              type: 'doc',
+              id: 'usage/customizing_user_interaction',
+              label: '🎨 Customizing User Interaction',
+            },
+          ],
+          collapsed: false,
+        },
+        {
+          type: 'category',
+          link: {
+            type: 'generated-index',
+            title: 'Like Count and Analytics',
+            description: 'This section will guide you on how to count the likes and perform analytics on the interactions.',
+          },
+          label: 'Like Count and Analytics',
+          items: [
+            {
+              type: 'doc',
+              id: 'usage/counting_interactions',
+              label: '🔢 Counting Interactions',
+            },
+          ],
+          collapsed: false,
+        },
+        {
+          type: 'category',
+          label: 'Querying and Filtering',
+          items: [
+            {
+              type: 'doc',
+              id: 'usage/query_scopes',
+              label: '🔍 Query Scopes',
+            },
+            {
+              type: 'doc',
+              id: 'usage/filtering_by_like_count',
+              label: '🔢 Filtering by Like Count',
+            },
+          ],
+          collapsed: false,
+        },
+        // {
+        //   type: 'category',
+        //   label: 'Events and Custom Actions',
+        //   items: [
+        //     'usage/like_events',
+        //     'usage/custom_like_actions',
+        //   ],
+        // },
+        // 'usage/customize_interaction_type',
+        // 'usage/changing_default_settings',
+        // 'usage/common_errors',
       ],
       collapsed: false,
     },
