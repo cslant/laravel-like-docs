@@ -49,9 +49,9 @@ erDiagram
 
 :::info[Explanation of the ERD]
 
-- A `User` can like multiple `Post`s.
-- A `Post` can have multiple `Like`s.
-- A `User` can have multiple `Like`s.
+- A `User` can like multiple `Post`.
+- A `Post` can have multiple `Like`.
+- A `User` can have multiple `Like`.
 - A `Like` can be associated with a `User` and a `Post`.
 
 :::
