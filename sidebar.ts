@@ -111,7 +111,7 @@ module.exports = {
       link: {
         type: 'generated-index',
         title: 'GitHub Source - Laravel Like Package',
-        description: 'Please check this section if you want to contribute to the Laravel Like project. We will be happy to accept your contributions. Let\'s make the package better together!',
+        description: 'Please check this section if you want to contribute to the Laravel Like package. We will be happy to accept your contributions. Let\'s make the package better together!',
       },
       label: 'GitHub Source',
       collapsed: false,
