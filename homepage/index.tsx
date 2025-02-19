@@ -6,6 +6,7 @@ import "../assets/styles/styles.scss";
 import Head from "@docusaurus/core/lib/client/exports/Head";
 import clsx from "clsx";
 import Feature from "@site/repos/laravel-like-docs/homepage/feature";
+import { JSX } from "react";
 
 const HeaderData = {
   title: "Documentation For Laravel Like Package",
