@@ -18,7 +18,7 @@ Here is the default configuration for Laravel Like package. You can customize th
 
 Path: `config/like.php`
 
-```php
+```php title="config/like.php"
 return [
     'name' => 'The interactions configuration',
 

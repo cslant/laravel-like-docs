@@ -24,7 +24,7 @@ composer require cslant/laravel-like
 
 The package will automatically register its service provider.
 
-## Configuration
+## Publish configuration file
 
 :::danger[required]
 
