@@ -35,7 +35,7 @@ The package will automatically register its service provider.
 You can publish all the necessary configuration and migration files by running the following command:
 
 ```shell
-php artisan vendor:publish --provider="CSlant\LaravelLike\LikeServiceProvider"
+php artisan vendor:publish --provider="CSlant\LaravelLike\Providers\LikeServiceProvider"
 ```
 
 This is the default content of the config file:
