@@ -1,13 +1,24 @@
 ---
 title: Release Notes | Laravel Like
 description: Release notes and upgrade instructions for Laravel Like projects. Check the release notes and upgrade instructions for Laravel Like projects. See the release notes and upgrade instructions for Laravel Like projects.
-keywords: ['laravel like', 'release notes', 'upgrade instructions', 'laravel like releases', 'laravel like upgrade instructions']
 tags: ['Release notes', 'Upgrade instructions', 'Releases', 'Prologue', 'Laravel Like Prologue', 'Laravel Like Release Notes']
 ---
 
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" href="https://docs.cslant.com/laravel-like/prologue/releases" />
+  
+  {/* Open Graph tags */}
+  <meta property="og:title" content="Release Notes | Laravel Like" />
+  <meta property="og:description" content="Release notes and upgrade instructions for Laravel Like projects. Check the release notes and upgrade instructions for Laravel Like projects. See the release..." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://docs.cslant.com/laravel-like/prologue/releases" />
+  
+  {/* Twitter Card tags */}
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Release Notes | Laravel Like" />
+  <meta name="twitter:description" content="Release notes and upgrade instructions for Laravel Like projects. Check the release notes and upgrade instructions for Laravel Like projects. See the release..." />
 </head>
 
 # 🚀 Release Notes

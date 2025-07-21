@@ -1,7 +1,6 @@
 ---
 title: Diagrams and Flow - Laravel Like
 description: Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package.
-keywords: ['Workflow', 'Flow', 'Laravel Like Workflow', 'Laravel Like Flow', 'Laravel Like package flow', 'Laravel Like package workflow']
 tags: ['Flowchart', 'Usage', 'Support', 'Development', 'Entity Relationship Diagram', 'ERD', 'Laravel Like Diagrams', 'Laravel Like Flow', 'Laravel Like Workflow']
 hide_title: true
 ---
@@ -9,6 +8,18 @@ hide_title: true
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" href="https://docs.cslant.com/laravel-like/development/laravel-like-flow" />
+  
+  {/* Open Graph tags */}
+  <meta property="og:title" content="Diagrams and Flow - Laravel Like" />
+  <meta property="og:description" content="Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://docs.cslant.com/laravel-like/development/laravel-like-flow" />
+  
+  {/* Twitter Card tags */}
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Diagrams and Flow - Laravel Like" />
+  <meta name="twitter:description" content="Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package." />
 </head>
 
 # 📊 Laravel Like Diagrams and Flow

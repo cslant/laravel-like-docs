@@ -1,13 +1,24 @@
 ---
 title: Change the default interaction model | Laravel Like
 description: Change the default interaction model for Laravel Like package. Change the default interaction model for Laravel Like package to customize the interactions as per your requirements.
-keywords: ['laravel like', 'change default interaction model', 'interaction model', 'default interaction model', 'customize interactions', 'Laravel Like interaction model']
 tags: ['Change Default Interaction Model', 'Interaction Model', 'Customize Interactions', 'Laravel Like Interaction Model', 'Laravel Like Package', 'Update Interaction Model', 'Usage', 'Laravel Like Usage']
 ---
 
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" href="https://docs.cslant.com/laravel-like/usage/change_default_interaction" />
+  
+  {/* Open Graph tags */}
+  <meta property="og:title" content="Change the default interaction model | Laravel Like" />
+  <meta property="og:description" content="Change the default interaction model for Laravel Like package. Change the default interaction model for Laravel Like package to customize the interactions as..." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://docs.cslant.com/laravel-like/usage/change_default_interaction" />
+  
+  {/* Twitter Card tags */}
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Change the default interaction model | Laravel Like" />
+  <meta name="twitter:description" content="Change the default interaction model for Laravel Like package. Change the default interaction model for Laravel Like package to customize the interactions as..." />
 </head>
 
 # 🛠 Change Default Interaction Model

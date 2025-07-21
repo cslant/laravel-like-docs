@@ -1,13 +1,24 @@
 ---
 title: Configuration Laravel Like
 description: All configuration for Laravel Like package to get started with it. Create interactions, set up the environment, and get the package ready for use.
-keywords: ["laravel Laravel Like", "configuration", "Laravel Like configuration", 'get started', 'Laravel Like get started']
 tags: ["Configuration", "Get Started", "Laravel Like Configuration", "Create Interactions", "Environment Setup", "Laravel Like Package", "Likes", "Dislikes", "Favorites", "Stars", "Upvotes", "Downvotes", "Reactions", "Votes"]
 ---
 
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" href="https://docs.cslant.com/laravel-like/getting-started/configuration" />
+  
+  {/* Open Graph tags */}
+  <meta property="og:title" content="Configuration Laravel Like" />
+  <meta property="og:description" content="All configuration for Laravel Like package to get started with it. Create interactions, set up the environment, and get the package ready for use." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://docs.cslant.com/laravel-like/getting-started/configuration" />
+  
+  {/* Twitter Card tags */}
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Configuration Laravel Like" />
+  <meta name="twitter:description" content="All configuration for Laravel Like package to get started with it. Create interactions, set up the environment, and get the package ready for use." />
 </head>
 
 # 🛠 Configuration

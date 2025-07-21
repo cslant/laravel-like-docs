@@ -1,7 +1,6 @@
 ---
 title: Introduction | Laravel Like
 description: Introduction to Laravel Like projects. Get to know the Laravel Like projects. Learn about the Laravel Like projects. Configure and install Laravel Like into your Laravel projects.
-keywords: ['laravel like', 'introduction', 'laravel like projects', 'laravel like introduction', 'configure laravel like', 'install laravel like']
 tags: ['Introduction', 'Laravel Like', 'Configure', 'Configure laravel like', 'Install laravel like', 'Laravel Like Projects', 'Get Started', 'Laravel Like Introduction', 'Information', 'Laravel Like Information']
 image: /images/laravel-like-docs-thumb.webp
 ---
@@ -9,6 +8,18 @@ image: /images/laravel-like-docs-thumb.webp
 <head>
   <meta name="robots" content="index,follow" />
   <meta name="author" content="CSlant" />
+  <link rel="canonical" href="https://docs.cslant.com/laravel-like/introduction" />
+  
+  {/* Open Graph tags */}
+  <meta property="og:title" content="Introduction | Laravel Like" />
+  <meta property="og:description" content="Introduction to Laravel Like projects. Get to know the Laravel Like projects. Learn about the Laravel Like projects. Configure and install Laravel Like into ..." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://docs.cslant.com/laravel-like/introduction" />
+  
+  {/* Twitter Card tags */}
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Introduction | Laravel Like" />
+  <meta name="twitter:description" content="Introduction to Laravel Like projects. Get to know the Laravel Like projects. Learn about the Laravel Like projects. Configure and install Laravel Like into ..." />
 </head>
 
 # Introduction

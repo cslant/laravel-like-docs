@@ -28,9 +28,7 @@ function HomepageHeader() {
         <meta name="description"
               content="Laravel Like package is the interaction for User 👍 like, 👎 dislike, and love ❤️ features for Laravel Application. This package is easy to use and can be integrated into any Laravel application."
               data-rh="true" />
-        <meta name="keywords"
-              content="Laravel, Like, Dislike, Love, Laravel Like, Laravel Dislike, Laravel Love, Laravel Like Package"
-              data-rh="true" />
+
         <meta name="author" content="CSlant" data-rh="true" />
         <meta name="robots" content="index, follow" data-rh="true" />
         <meta property="og:site_name" content="Laravel Like Package Documentation" data-rh="true" />
@@ -41,6 +39,11 @@ function HomepageHeader() {
               data-rh="true" />
         <meta property="og:url" content="https://docs.cslant.com/laravel-like" data-rh="true" />
         <meta data-rh="true" property="og:image" content="/images/laravel-like-docs-thumb.webp" />
+
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" data-rh="true" />
+        <meta name="twitter:title" content="Laravel Like Package Documentation" data-rh="true" />
+        <meta name="twitter:description" content="Laravel Like package is the interaction for User 👍 like, 👎 dislike, and love ❤️ features for Laravel Application. This package is easy to use and can be integrated into any Laravel application." data-rh="true" />
         <meta data-rh="true" name="twitter:image" content="/images/laravel-like-docs-thumb.webp" />
       </Head>
       <header className="main_header laravel_like_header">
