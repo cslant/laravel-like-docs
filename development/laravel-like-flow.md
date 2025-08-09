@@ -1,6 +1,7 @@
 ---
 title: Diagrams and Flow - Laravel Like
 description: Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package.
+keywords: ['Workflow', 'Flow', 'Laravel Like Workflow', 'Laravel Like Flow', 'Laravel Like package flow', 'Laravel Like package workflow']
 tags: ['Flowchart', 'Usage', 'Support', 'Development', 'Entity Relationship Diagram', 'ERD', 'Laravel Like Diagrams', 'Laravel Like Flow', 'Laravel Like Workflow']
 hide_title: true
 ---

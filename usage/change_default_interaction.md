@@ -1,6 +1,7 @@
 ---
 title: Change the default interaction model | Laravel Like
 description: Change the default interaction model for Laravel Like package. Change the default interaction model for Laravel Like package to customize the interactions as per your requirements.
+keywords: ['laravel like', 'change default interaction model', 'interaction model', 'default interaction model', 'customize interactions', 'Laravel Like interaction model']
 tags: ['Change Default Interaction Model', 'Interaction Model', 'Customize Interactions', 'Laravel Like Interaction Model', 'Laravel Like Package', 'Update Interaction Model', 'Usage', 'Laravel Like Usage']
 ---
 
