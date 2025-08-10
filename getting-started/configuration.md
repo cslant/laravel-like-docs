@@ -87,7 +87,7 @@ return [
 
 :::warning Note
 
-If you want to change the configuration, you can publish the configuration file in **[the installation step](/laravel-like/getting-started/installation#configuration).**
+If you want to change the configuration, you can publish the configuration file in **[the installation step](./installation#publish-configuration-file)**.
 
 And if you have already run the migration, **you need rollback the migration and _run it again to apply the changes_**.
 
