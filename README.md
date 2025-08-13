@@ -2,8 +2,6 @@
 
 This repository contains the documentation for the Laravel Like projects. The Laravel Like project is a set of Laravel packages that provide additional features and functionalities to Laravel projects.
 
-[![Deploy CSlant Server](https://github.com/cslant/laravel-like-docs/actions/workflows/deploy_docs.yml/badge.svg)](https://github.com/cslant/laravel-like-docs/actions/workflows/deploy_docs.yml)
-
 ## Laravel Like Projects
 
 - [Laravel Like Package](https://github.com/cslant/laravel-like)
