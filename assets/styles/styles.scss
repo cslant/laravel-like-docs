@@ -20,7 +20,7 @@
   }
 }
 
-.main_header {
+.main_header.laravel_like_header {
   .main_title {
     font-size: 2.5rem;
     font-weight: 700;
@@ -36,6 +36,10 @@
   .left_header {
     text-align: center;
     margin: auto;
+
+    @media screen and (max-width: 996px) {
+      margin-bottom: 20px;
+    }
   }
 
   .hero {
