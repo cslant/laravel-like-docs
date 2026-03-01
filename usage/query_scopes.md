@@ -259,4 +259,4 @@ public function test_popular_scope()
 - Check out [filtering by interaction counts](filtering_by_like_count.md)
 - Explore [counting interactions](counting_interactions.md) for more statistics
 
-For more advanced usage, refer to the [API documentation](../api/README.md).
+For more advanced usage, refer to the [GitHub Repository](https://github.com/cslant/laravel-like).

@@ -228,4 +228,4 @@ $popularPosts = Post::withCount(['likes', 'dislikes'])
 - Explore [advanced query scopes](query_scopes.md)
 - Discover how to [customize interactions](customizing_user_interaction.md)
 
-For more advanced usage, refer to the [API documentation](../api/README.md).
+For more advanced usage, refer to the [GitHub Repository](https://github.com/cslant/laravel-like).

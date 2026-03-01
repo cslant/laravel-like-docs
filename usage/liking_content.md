@@ -408,9 +408,8 @@ If you encounter any issues or have questions, please [open an issue](https://gi
    - [Removing and Toggling Interactions](./unliking_content.md)
 
 3. **Advanced Configuration**:
-   - [Customizing the Interaction Model](../advanced/custom-models.md)
-   - [Handling Events and Listeners](../advanced/events.md)
-   - [Performance Optimization](../advanced/performance.md)
+   - [Customizing User Interaction](./customizing_user_interaction.md)
+   - [Change Default Interaction](./change_default_interaction.md)
 
 4. **Contribute**:
    - [Report an Issue](https://github.com/cs4b1c/laravel-like/issues)

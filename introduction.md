@@ -104,7 +104,7 @@ Explore the comprehensive documentation to get the most out of Laravel Like:
 - [Checking Interactions](usage/check_if_interacted.md) - Determine if users have interacted with content
 - [Counting Interactions](usage/counting_interactions.md) - Get interaction counts and statistics
 - [Query Scopes](usage/query_scopes.md) - Filter and sort content by interaction data
-- [Advanced Usage](usage/advanced_usage.md) - Custom interaction types and advanced features
+- [Customizing User Interaction](usage/customizing_user_interaction.md) - Custom interaction types and advanced features
 
 ## 🤝 Contributing
 

@@ -205,4 +205,4 @@ $controversial = Post::withCount(['likes', 'dislikes'])
 - Explore [query scopes](query_scopes.md) for more advanced filtering
 - Check out [counting interactions](counting_interactions.md) for more statistics
 
-For more advanced usage, refer to the [API documentation](../api/README.md).
+For more advanced usage, refer to the [GitHub Repository](https://github.com/cslant/laravel-like).
