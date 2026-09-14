@@ -49,6 +49,24 @@ return [
          */
         'foreign_key' => 'user_id',
     ],
+
+    /*
+     * Caching for per-type interaction counts (likesCount, dislikesCount, lovesCount).
+     * Counts are read far more often than they change, so caching them cuts repeated
+     * COUNT queries on hot paths (feeds, listings). Disabled by default to keep the
+     * package's out-of-the-box behaviour always consistent; enable it once your cache
+     * store is configured.
+     */
+    'cache' => [
+        'enabled' => false,
+
+        /*
+         * Time-to-live in seconds for a cached count. The cache is also actively
+         * invalidated whenever an interaction is created, moved, or removed, so this
+         * TTL is only a safety net.
+         */
+        'ttl' => 60,
+    ],
 ];
 ```
 
@@ -160,6 +178,46 @@ If your `likes` table uses a different column name for the user foreign key, upd
 ```
 
 Make sure the migration table uses the same column name.
+
+---
+
+### `cache.enabled`
+
+Turns on caching for `likesCount()`, `dislikesCount()`, and `lovesCount()` (both the model helpers and the `LikeManager`/facade methods):
+
+```php
+'cache' => [
+    'enabled' => true,
+],
+```
+
+**What happens when enabled:**
+
+- Each per-type count is cached under a key like `like:count:like:App\Models\Post:42`.
+- The cache is **automatically invalidated** whenever the underlying interaction changes — `like()`, `dislike()`, `love()`, `unlike()`, `unDislike()`, `unlove()`, and `toggle()` all bust the cache for that model.
+- `totalCount()` is **not** cached — only the three per-type counts.
+
+Uses your application's default cache store (`config('cache.default')`). No extra setup needed beyond having a cache driver configured.
+
+:::info When to enable it
+
+Leave this `false` unless you have a specific hot page (a viral post, a trending feed) where the same count is read many times per second. For most applications, an uncached `COUNT` query on an indexed column is already fast enough — see [Performance](../usage/performance.md).
+
+:::
+
+---
+
+### `cache.ttl`
+
+Time-to-live, in seconds, for a cached count:
+
+```php
+'cache' => [
+    'ttl' => 300, // 5 minutes
+],
+```
+
+Since the cache is actively invalidated on every write, the TTL is only a safety net (e.g. for writes made outside the package, directly on the `likes` table). Defaults to `60`.
 
 ---
 

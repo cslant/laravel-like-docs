@@ -22,7 +22,10 @@ A powerful and flexible Laravel package that adds social interaction features to
 - **UUID primary keys** — optional, driven by config
 - **Strict counting** — single `COUNT` / `EXISTS` queries, never N+1
 - **Rich model helpers** — `isLiked()`, `likesCount()`, `toggle()`, and more
-- **Eloquent event hooks** — listen to `Like::created`, `Like::deleted` etc. to invalidate caches
+- **Batch APIs for lists** — `likeCountsFor()` and `userInteractionsFor()` resolve counts/state for a whole `Collection` in one query per model type, instead of one query per row
+- **Built-in count caching** — optional, config-driven cache for `likesCount()` / `dislikesCount()` / `lovesCount()`, auto-invalidated on every write
+- **Indexed by default** — a composite index on `(model_type, model_id, type)` ships alongside the standard migration
+- **Eloquent event hooks** — listen to `Like::created`, `Like::deleted` etc. for your own custom caches
 
 ## 🚀 Getting Started
 
@@ -57,6 +60,8 @@ All configuration lives in `config/like.php`. Key options:
 | `interaction_model` | `Like::class` | Replace with your own model (extends `Like`) |
 | `users.model` | `null` (falls back to auth user) | Your User model class |
 | `users.foreign_key` | `'user_id'` | Column name for the user foreign key |
+| `cache.enabled` | `false` | Cache `likesCount()` / `dislikesCount()` / `lovesCount()`, auto-invalidated on writes |
+| `cache.ttl` | `60` | Seconds before a cached count expires (safety net; writes invalidate immediately) |
 
 ## 📚 Documentation
 

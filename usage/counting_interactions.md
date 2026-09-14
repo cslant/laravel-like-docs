@@ -97,6 +97,15 @@ foreach ($posts as $post) {
 }
 ```
 
+Already have a `Collection` of models from somewhere other than a fresh query (a cache, a search index) and can't reshape it into `withCount()`? Use [`likeCountsFor()`](like_manager.md#likecountsfor--batch-counts-for-a-list) instead — same one-query-per-model-type guarantee:
+
+```php
+use CSlant\LaravelLike\Facades\Like;
+use CSlant\LaravelLike\Enums\InteractionTypeEnum;
+
+$counts = Like::likeCountsFor($posts, InteractionTypeEnum::LIKE); // [postId => count]
+```
+
 :::info Relation names
 
 The package exposes `likes()` plus filtered relations (`likesTo()`, `dislikesTo()`, `lovesTo()`, `likeOne()`, `dislikeTo()`, `loveTo()`). There are **no** `dislikes()` or `loves()` relationship methods — use `likesTo()`/`dislikesTo()`/`lovesTo()` with `withCount`.
@@ -158,37 +167,16 @@ $mostInteracted = Post::query()
 
 ## Caching counts
 
-Counts are plain `COUNT` queries, but you may still want to cache hot ones:
+Counts are plain `COUNT` queries, but on very hot pages you may still want to cache them. The package has **built-in** cache support for `likesCount()` / `dislikesCount()` / `lovesCount()` — enable it in config and the package invalidates it for you on every write:
 
-```php
-use Illuminate\Support\Facades\Cache;
-use CSlant\LaravelLike\Models\Like;
-
-function getLikeCount($postId): int
-{
-    return Cache::remember("post_{$postId}_like_count", 3600, function () use ($postId) {
-        return Like::where('model_id', $postId)
-            ->where('model_type', Post::class)
-            ->where('type', 'like')
-            ->count();
-    });
-}
+```php title="config/like.php"
+'cache' => [
+    'enabled' => true,
+    'ttl' => 300,
+],
 ```
 
-Invalidate the cache by listening to standard Eloquent events:
-
-```php
-use CSlant\LaravelLike\Models\Like;
-use Illuminate\Support\Facades\Cache;
-
-Like::saved(function (Like $like) {
-    Cache::forget("post_{$like->model_id}_like_count");
-});
-
-Like::deleted(function (Like $like) {
-    Cache::forget("post_{$like->model_id}_like_count");
-});
-```
+No manual `Cache::remember()` or event listeners needed. See [Performance → Caching counts](performance.md#caching-counts) and [Configuration](../getting-started/configuration.md#cacheenabled) for the full picture, including what the built-in cache does *not* cover (`totalCount()`, `likeCountsFor()`).
 
 ## Performance notes
 

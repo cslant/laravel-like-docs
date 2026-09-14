@@ -34,7 +34,9 @@ php artisan vendor:publish --provider="CSlant\LaravelLike\Providers\LikeServiceP
 This publishes two things:
 
 1. `config/like.php` — the package configuration file
-2. `database/migrations/<timestamp>_create_likes_table.php` — the migration for the interactions table
+2. `database/migrations/` — the migrations for the interactions table:
+   - `<timestamp>_create_likes_table.php` — creates the `likes` table
+   - `<timestamp>_add_type_lookup_index_to_likes_table.php` — adds a composite index (`model_type`, `model_id`, `type`) that speeds up `likesCount()`, `dislikesCount()`, `lovesCount()`, and `likeCountsFor()`
 
 You can also publish them separately:
 
@@ -59,7 +61,7 @@ php artisan migrate
 
 The migration creates a single `likes` table that stores **all** interactions (likes, dislikes, loves) for **all** interactable models through a polymorphic `model` column pair.
 
-> **Table structure:** `id`, `model_id`, `model_type` (polymorphic morphs), `user_id`, `type`, `created_at`, `updated_at`, with a unique constraint on `(user_id, model_id, model_type, type)`.
+> **Table structure:** `id`, `model_id`, `model_type` (polymorphic morphs), `user_id`, `type`, `created_at`, `updated_at`, with a unique constraint on `(user_id, model_id, model_type, type)` and a composite index on `(model_type, model_id, type)` for fast per-model count lookups.
 
 ## 4. Add the trait to your content model
 

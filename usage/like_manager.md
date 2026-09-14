@@ -19,9 +19,9 @@ $manager = app(LikeManager::class);          // ← or
 $manager = app(LikeManagerContract::class);  // ← same singleton
 $manager = app('like');                      // ← alias
 
-// Facades proxy the very same instance:
+// Facades proxy the very same instance, each scoped to its own domain:
 Like::like($post);
-Love::like($post);   // identical to Like::like($post)
+Love::love($post);
 ```
 
 Since it's a singleton with a contract binding, you can type-hint it anywhere (controllers, services, jobs):
@@ -60,6 +60,8 @@ class PostController extends Controller
 | `totalCount(Model $m)` | `int` | All interactions on the model |
 | `userInteractions(?int $userId = null)` | `Collection<Like>` | A user's interaction records |
 | `userLikedModels(?int $userId = null)` | `Collection<Model>` | The actual models a user liked (only `like` type) |
+| `likeCountsFor(Collection $models, InteractionTypeEnum $type = LIKE)` | `array<int\|string, int>` | Counts of one interaction type, batched for a collection of models |
+| `userInteractionsFor(Collection $models, ?int $userId = null)` | `Collection<string, Like>` | A user's interaction per model, batched for a collection of models |
 
 All methods take the model as the **first** argument — unlike the model helpers (`$post->like()`), the manager/facade is static-ish:
 
@@ -127,6 +129,52 @@ This method performs **one query for the user's likes, plus one query per distin
 
 :::
 
+## `likeCountsFor()` — batch counts for a list
+
+Given a `Collection` of models, returns per-type counts in a **single query** (grouped internally per distinct model class). Use this instead of calling `$model->likesCount()` inside a loop:
+
+```php
+use CSlant\LaravelLike\Facades\Like;
+use CSlant\LaravelLike\Enums\InteractionTypeEnum;
+
+$posts = Post::limit(50)->get();
+
+$counts = Like::likeCountsFor($posts, InteractionTypeEnum::LIKE);
+// ['1' => 12, '3' => 47, ...] — keyed by model primary key
+
+foreach ($posts as $post) {
+    echo $counts[$post->getKey()] ?? 0;
+}
+```
+
+A model with zero interactions of that type simply has no entry in the array — default to `0` with `$counts[$post->getKey()] ?? 0`.
+
+:::tip When to prefer `withCount()` instead
+
+If you're already building the query (`Post::query()...`), `Post::withCount('likesTo as likes_count')` (see [Counting interactions](counting_interactions.md)) is usually simpler — it's one query with zero extra code. Reach for `likeCountsFor()` when you already have a `Collection` from somewhere else (a cache, a search index, a different repository method) and can't reshape the original query.
+
+:::
+
+## `userInteractionsFor()` — batch interaction check for a list
+
+The single-model predicates (`isLiked()`, `isDisliked()`, `isLoved()`) cost one `EXISTS` query **each** — fine for one model, but calling them inside a loop over a list is an N+1. `userInteractionsFor()` resolves the current user's interaction state for every model in a collection in one query:
+
+```php
+use CSlant\LaravelLike\Facades\Like;
+
+$posts = Post::limit(50)->get();
+$interactions = Like::userInteractionsFor($posts, auth()->id());
+
+foreach ($posts as $post) {
+    $key = $post->getMorphClass().':'.$post->getKey();
+    $interaction = $interactions->get($key);
+
+    $isLiked = $interaction?->type->isLike() ?? false;
+}
+```
+
+The collection is keyed by `"{morphClass}:{modelKey}"` (not just the model key) so it stays correct even when the source `Collection` mixes several model classes, e.g. results from `userLikedModels()`. A model the user has not interacted with simply has no entry.
+
 ## `totalCount()`
 
 Counts likes + dislikes + loves on a model in a single query:
@@ -137,9 +185,14 @@ $total = Like::totalCount($post);   // e.g. 10
 
 Note that `totalCount()` exists only on the manager/facade — there is no `$post->totalCount()` model helper.
 
-## `LIKE` vs `LOVE` facade
+## `Like` vs `Love` facade
 
-Both facades expose the same methods. Use them to be explicit about intent:
+Both facades proxy the **same** `LikeManager` singleton — there's only one underlying service. What differs is the method set each facade **advertises** via its docblock (autocomplete, static analysis), so each stays focused on its own domain:
+
+| Facade | Advertises | Does not advertise |
+| --- | --- | --- |
+| `Like` | `like`, `dislike`, `unlike`, `unDislike`, `toggle`, `isLiked`, `isDisliked`, `likesCount`, `dislikesCount`, `totalCount`, `userInteractions`, `userLikedModels`, `likeCountsFor`, `userInteractionsFor` | `love`, `unlove`, `isLoved`, `lovesCount` |
+| `Love` | `love`, `unlove`, `isLoved`, `lovesCount`, `totalCount`, `userInteractions`, `likeCountsFor`, `userInteractionsFor` | `like`, `dislike`, `unlike`, `unDislike`, `toggle`, `isLiked`, `isDisliked`, `likesCount`, `dislikesCount`, `userLikedModels` |
 
 ```php
 use CSlant\LaravelLike\Facades\Love;
@@ -148,6 +201,12 @@ Love::love($post);   // create a love for auth()->user()
 Love::unlove($post);
 Love::isLoved($post);
 ```
+
+:::info This is a static-analysis boundary, not a runtime one
+
+Because both facades resolve to the same singleton, `Love::like($post)` still **works** at runtime (Laravel facades don't check docblocks) — it's just no longer suggested by your IDE or accepted by PHPStan through the `Love` facade, since `like()`/`unlike()` conceptually belong to the `Like` facade. Reach for the `Like` facade for like/dislike behaviour and `Love` for love behaviour to keep intent unambiguous in your codebase.
+
+:::
 
 ## Errors
 
