@@ -7,202 +7,164 @@ tags: ['Filtering', 'Sorting', 'Interactions', 'Query Scopes', 'Tutorial']
 
 # Filtering by Interaction Counts
 
-This guide explains how to filter and sort your content based on interaction counts using the Laravel Like package. You'll learn how to find popular content, filter by specific interaction thresholds, and create custom queries.
+This guide explains how to filter and sort your content based on interaction counts using the Laravel Like package. You'll learn how to find popular content, filter by thresholds, and create re-usable custom queries.
 
 ## Prerequisites
 
-- Laravel 9.0 or higher
-- PHP 8.1 or higher
-- Laravel Like package installed and configured
-- Models set up with the `HasLike` trait
+- [Installation](../getting-started/installation.md) completed
+- `HasLike` / `HasLove` trait on your content model
 
-## Basic Filtering
-
-### Get Content with Minimum Likes
+## Filtering by minimum likes
 
 ```php
-// Get posts with at least 10 likes
-$popularPosts = Post::whereHas('likes', function($query) {
-    $query->where('type', 'like');
-}, '>=', 10)->get();
+// Posts with at least 10 likes
+$popular = Post::whereHas('likesTo', '>=', 10)->get();
 
-// Using the provided scope
-$popularPosts = Post::has('likes', '>=', 10)->get();
+// Posts with at least 50 likes AND at most 2 dislikes
+$highQuality = Post::query()
+    ->whereHas('likesTo', '>=', 50)
+    ->whereHas('dislikesTo', '<=', 2)
+    ->get();
 ```
 
-### Get Content with No Dislikes
+## Filtering by ratio
 
 ```php
-// Get posts with no dislikes
-$nonControversial = Post::whereDoesntHave('dislikes')->get();
-```
-
-## Advanced Filtering
-
-### Filter by Multiple Interaction Types
-
-```php
-// Get posts with many likes AND few dislikes
-$highQualityPosts = Post::whereHas('likes', function($q) {
-    $q->where('type', 'like');
-}, '>=', 10)
-->whereHas('dislikes', function($q) {
-    $q->where('type', 'dislike');
-}, '<=', 2)
-->get();
-```
-
-### Filter by Interaction Ratio
-
-```php
-// Get posts where likes are at least 80% of total interactions
-$highQualityPosts = Post::withCount(['likes', 'dislikes'])
+// Posts where likes are ≥ 80% of total interactions
+$highQuality = Post::query()
+    ->withCount(['likesTo as likes_count', 'dislikesTo as dislikes_count'])
     ->havingRaw('likes_count / (likes_count + dislikes_count) >= 0.8')
     ->get();
 ```
 
-## Sorting by Popularity
-
-### Basic Sorting
+## Sorting by popularity
 
 ```php
-// Sort by number of likes (descending)
-$posts = Post::withCount('likes')
-    ->orderBy('likes_count', 'desc')
-    ->get();
+// Posts sorted by like count (descending)
+$posts = Post::query()
+    ->withCount('likesTo as likes_count')
+    ->orderByDesc('likes_count')
+    ->paginate(15);
 
-// Sort by interaction score (likes - dislikes)
-$posts = Post::withCount(['likes', 'dislikes'])
-    ->orderByRaw('(SELECT COUNT(*) FROM likes WHERE likes.model_id = posts.id AND likes.type = ?) - (SELECT COUNT(*) FROM likes WHERE likes.model_id = posts.id AND likes.type = ?) DESC', 
-        ['like', 'dislike'])
-    ->get();
-```
-
-### Sorting with Eager Loading
-
-```php
-// Eager load counts and sort
-$posts = Post::withCount(['likes', 'dislikes', 'loves'])
-    ->orderBy('likes_count', 'desc')
-    ->orderBy('loves_count', 'desc')
-    ->orderBy('dislikes_count', 'asc')
+// Combined sorting — likes desc, then dislikes asc
+$posts = Post::query()
+    ->withCount([
+        'likesTo as likes_count',
+        'dislikesTo as dislikes_count',
+        'lovesTo as loves_count',  // requires HasLove
+    ])
+    ->orderByDesc('likes_count')
+    ->orderBy('dislikes_count')
+    ->orderByDesc('loves_count')
     ->paginate(15);
 ```
 
-## Custom Query Scopes
+## Re-usable scopes
 
-### Create a Popular Scope
-
-In your model:
+Wrap these queries into local scopes on your model:
 
 ```php
-public function scopePopular($query, $minLikes = 10, $maxDislikes = 2)
+class Post extends Model
 {
-    return $query->withCount(['likes', 'dislikes'])
-        ->having('likes_count', '>=', $minLikes)
-        ->having('dislikes_count', '<=', $maxDislikes)
-        ->orderBy('likes_count', 'desc');
+    use HasLike, HasLove;
+
+    public function scopePopular($query, int $minLikes = 10, int $maxDislikes = 2)
+    {
+        return $query->whereHas('likesTo', '>=', $minLikes)
+            ->whereHas('dislikesTo', '<=', $maxDislikes)
+            ->withCount('likesTo as likes_count')
+            ->orderByDesc('likes_count');
+    }
+
+    public function scopeMostTrending($query, int $hours = 24, int $min = 5)
+    {
+        $cutoff = now()->subHours($hours);
+
+        return $query->whereHas('likes', function ($q) use ($cutoff) {
+                $q->where('created_at', '>=', $cutoff);
+            }, '>=', $min)
+            ->withCount(['likes as recent_likes' => function ($q) use ($cutoff) {
+                $q->where('created_at', '>=', $cutoff);
+            }])
+            ->orderByDesc('recent_likes');
+    }
 }
-
-// Usage
-$popularPosts = Post::popular()->get();
 ```
 
-### Create a Trending Scope
-
 ```php
-public function scopeTrending($query, $hours = 24, $minInteractions = 5)
-{
-    $cutoff = now()->subHours($hours);
-    
-    return $query->whereHas('interactions', function($q) use ($cutoff) {
-        $q->where('created_at', '>=', $cutoff);
-    }, '>=', $minInteractions)
-    ->withCount(['interactions as recent_interactions_count' => function($q) use ($cutoff) {
-        $q->where('created_at', '>=', $cutoff);
-    }])
-    ->orderBy('recent_interactions_count', 'desc');
-}
-
-// Usage
-$trendingPosts = Post::trending(48, 10)->get(); // Last 48 hours, min 10 interactions
+$popularPosts  = Post::popular()->get();
+$weeklyTrends  = Post::mostTrending(168, 20)->take(10)->get();
 ```
 
-## Performance Optimization
+## Real-world examples
 
-### Add Database Indexes
-
-Add this to a migration:
+### Most popular this week
 
 ```php
-// Add index for faster filtering
-Schema::table('likes', function (Blueprint $table) {
-    $table->index(['model_type', 'model_id', 'type']);
-    $table->index(['user_id', 'type']);
-});
-```
-
-### Cache Popular Queries
-
-```php
-use Illuminate\Support\Facades\Cache;
-
-function getPopularPosts($limit = 10)
-{
-    $cacheKey = 'popular_posts_' . $limit;
-    $minutes = 30; // Cache for 30 minutes
-    
-    return Cache::remember($cacheKey, $minutes, function () use ($limit) {
-        return Post::withCount('likes')
-            ->orderBy('likes_count', 'desc')
-            ->limit($limit)
-            ->get();
-    });
-}
-
-// In your controller
-$popularPosts = getPopularPosts(10);
-```
-
-## Real-world Examples
-
-### Most Popular This Week
-
-```php
-// Get most liked posts from the last 7 days
-$weeklyPopular = Post::whereHas('likes', function($q) {
+$weeklyPopular = Post::whereHas('likesTo', function ($q) {
     $q->where('created_at', '>=', now()->subWeek());
 })
-->withCount(['likes as weekly_likes' => function($q) {
+->withCount(['likesTo as weekly_likes' => function ($q) {
     $q->where('created_at', '>=', now()->subWeek());
 }])
-->orderBy('weekly_likes', 'desc')
+->orderByDesc('weekly_likes')
 ->take(5)
 ->get();
 ```
 
-### Controversial Content
+### Controversial content
 
 ```php
-// Get posts with many likes AND dislikes
-$controversial = Post::withCount(['likes', 'dislikes'])
+$controversial = Post::query()
+    ->withCount(['likesTo as likes_count', 'dislikesTo as dislikes_count'])
     ->having('likes_count', '>', 5)
     ->having('dislikes_count', '>', 5)
-    ->orderByRaw('ABS(likes_count - dislikes_count)') // Closest to equal
+    ->orderByRaw('ABS(likes_count - dislikes_count)')
     ->get();
 ```
 
-## Common Pitfalls
+## Performance optimization
 
-1. **N+1 Queries**: Always use `withCount()` to avoid N+1 query problems
-2. **Missing Indexes**: Ensure proper database indexes for performance
-3. **Cache Invalidation**: Remember to clear cache when interactions change
-4. **Pagination**: Always use pagination for potentially large result sets
+### Indexes
+
+Add explicit indexes if your dataset grows large:
+
+```php
+public function up(): void
+{
+    Schema::table('likes', function (Blueprint $table) {
+        $table->index(['model_type', 'model_id', 'type']);
+        $table->index(['user_id', 'type']);
+    });
+}
+```
+
+### Cache hot queries
+
+```php
+use Illuminate\Support\Facades\Cache;
+
+function getPopularPosts(int $limit = 10)
+{
+    return Cache::remember('popular_posts_' . $limit, 1800, function () use ($limit) {
+        return Post::query()
+            ->withCount('likesTo as likes_count')
+            ->orderByDesc('likes_count')
+            ->limit($limit)
+            ->get();
+    });
+}
+```
+
+## Common pitfalls
+
+1. **N+1 queries** — always use `withCount()` (never `$post->likesCount()` in a loop).
+2. **Relation names** — there are no `dislikes` / `loves` relationship methods. Use `dislikesTo` / `lovesTo` (or the generic `likes`) with `withCount`/`whereHas`.
+3. **`having` with `withCount`** — `having()` only works on aggregated columns; when grouping, wrap raw expressions in `havingRaw()`.
+4. **Pagination** — always paginate potentially large datasets.
 
 ## Next Steps
 
-- Learn about [customizing interactions](customizing_user_interaction.md)
-- Explore [query scopes](query_scopes.md) for more advanced filtering
-- Check out [counting interactions](counting_interactions.md) for more statistics
-
-For more advanced usage, refer to the [GitHub Repository](https://github.com/cslant/laravel-like).
+- [Query scopes](query_scopes.md) — query-building building blocks
+- [Counting interactions](counting_interactions.md) — aggregation recipes
+- [Performance](performance.md) — broader optimisation guide

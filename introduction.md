@@ -6,81 +6,41 @@ tags: ['Introduction', 'Features', 'Installation', 'Configuration', 'Usage', 'AP
 image: /images/laravel-like-docs-thumb.webp
 ---
 
-<head>
-  <meta name="robots" content="index,follow" />
-  <meta name="author" content="CSlant" />
-  <meta name="generator" content="Docusaurus" />
-  <meta name="theme-color" content="#2e8555" />
-  
-  <link rel="canonical" href="https://docs.cslant.com/laravel-like/introduction" />
-  
-  <meta property="og:title" content="Introduction | Laravel Like" />
-  <meta property="og:description" content="Introduction to Laravel Like projects. Get to know the Laravel Like projects. Learn about the Laravel Like projects. Configure and install Laravel Like into ..." />
-  <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://docs.cslant.com/laravel-like/introduction" />
-  <meta property="og:site_name" content="Laravel Like Package Documentation" />
-  <meta property="og:locale" content="en_US" />
-  
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Introduction | Laravel Like" />
-  <meta name="twitter:description" content="Introduction to Laravel Like projects. Get to know the Laravel Like projects. Learn about the Laravel Like projects. Configure and install Laravel Like into ..." />
-  <meta name="twitter:creator" content="@cslantofficial" />
-  <meta name="twitter:site" content="@cslantofficial" />
-  
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  
-  <meta property="article:published_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:modified_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:author" content="CSlant" />
-  <meta property="article:section" content="Documentation" />
-  
-  </head>
-
 # Laravel Like Package
 
-A powerful and flexible Laravel package that adds social interaction features to your Eloquent models with minimal setup. 
+A powerful and flexible Laravel package that adds social interaction features to your Eloquent models with minimal setup.
 
 ![Laravel Like Package](/images/laravel-like-thumb.webp)
 
 ## ✨ Features
 
-- **Multiple Interaction Types**: Support for likes, dislikes, and loves out of the box
-- **Fully Extensible**: Easily add custom interaction types
-- **Efficient Queries**: Optimized database queries for high performance
-- **Polymorphic Relationships**: Works with any Eloquent model
-- **Flexible Configuration**: Customize table names, model references, and more
-- **Comprehensive API**: Simple, intuitive methods for all interaction types
-- **Query Scopes**: Powerful filtering and sorting capabilities
-- **UUID Support**: Optional UUID support for primary keys
-- **Caching**: Built-in caching for better performance
-- **Event-Driven**: Fires events for all interactions
+- **Multiple Interaction Types** — like, dislike, and love out of the box
+- **Facade & Service API** — `Like::like($post)` plus a full `LikeManager` behind a singleton contract
+- **Single-active invariant** — one interaction type per user per model, enforced transactionally
+- **Idempotent actions** — calling `like()` twice returns the same row, never duplicates
+- **Polymorphic relationships** — works with any Eloquent model
+- **UUID primary keys** — optional, driven by config
+- **Strict counting** — single `COUNT` / `EXISTS` queries, never N+1
+- **Rich model helpers** — `isLiked()`, `likesCount()`, `toggle()`, and more
+- **Eloquent event hooks** — listen to `Like::created`, `Like::deleted` etc. to invalidate caches
 
 ## 🚀 Getting Started
 
 ### Requirements
 
-- PHP 8.1 or higher
-- Laravel 9.0 or higher
-- Composer
+- PHP **8.2** or higher (8.2 – 8.5)
+- Laravel **11, 12, or 13**
+- [Composer](https://getcomposer.org/)
 
 ### Installation
-
-1. Install the package via Composer:
 
 ```bash
 composer require cslant/laravel-like
 ```
 
-2. Publish the configuration file and migrations:
-
 ```bash
 php artisan vendor:publish --provider="CSlant\LaravelLike\Providers\LikeServiceProvider"
 ```
-
-3. Run the migrations:
 
 ```bash
 php artisan migrate
@@ -88,23 +48,37 @@ php artisan migrate
 
 ## 🔧 Configuration
 
-The package comes with sensible defaults, but you can customize its behavior by modifying the `config/like.php` file. Key configuration options include:
+All configuration lives in `config/like.php`. Key options:
 
-- `is_uuids`: Use UUIDs instead of auto-incrementing IDs
-- `table_name`: Customize the interactions table name
-- `interaction_model`: Specify a custom interaction model
-- `users.model`: Configure the user model
-- `users.foreign_key`: Set the user foreign key
+| Key | Default | Purpose |
+| --- | --- | --- |
+| `is_uuids` | `false` | Use UUID primary keys instead of auto-incrementing integers |
+| `table_name` | `'likes'` | Database table name |
+| `interaction_model` | `Like::class` | Replace with your own model (extends `Like`) |
+| `users.model` | `null` (falls back to auth user) | Your User model class |
+| `users.foreign_key` | `'user_id'` | Column name for the user foreign key |
 
 ## 📚 Documentation
 
-Explore the comprehensive documentation to get the most out of Laravel Like:
+Explore the comprehensive documentation:
 
-- [Basic Usage](usage/liking_content.md) - Learn how to add interactions to your models
-- [Checking Interactions](usage/check_if_interacted.md) - Determine if users have interacted with content
-- [Counting Interactions](usage/counting_interactions.md) - Get interaction counts and statistics
-- [Query Scopes](usage/query_scopes.md) - Filter and sort content by interaction data
-- [Customizing User Interaction](usage/customizing_user_interaction.md) - Custom interaction types and advanced features
+**Getting Started**
+- [Requirements](getting-started/requirements.md)
+- [Installation](getting-started/installation.md)
+- [Configuration](getting-started/configuration.md)
+
+**Usage**
+- [Liking Content](usage/liking_content.md) — `like()`, `dislike()`, `love()`
+- [Unliking Content](usage/unliking_content.md) — `unlike()`, `unDislike()`, `unlove()`, `forgetInteractions()`
+- [Checking Interactions](usage/check_if_interacted.md) — `isLiked()`, `isLikedBy()`, `isInteractedBy()`
+- [Toggle Interactions](usage/toggle_interactions.md) — `toggle()` state machine
+- [User Interaction Trait](usage/user_interaction_trait.md) — the user-side `likes()` relationship
+- [Counting Interactions](usage/counting_interactions.md) — `likesCount()`, `totalCount()`
+- [Query Scopes](usage/query_scopes.md) — building queries with real package relations
+- [Filtering by Count](usage/filtering_by_like_count.md) — popularity sorting
+- [Customizing User Interaction](usage/customizing_user_interaction.md) — extend models
+- [LikeManager & Facade API](usage/like_manager.md) — full service reference
+- [Performance](usage/performance.md) — query-cost guarantees and caching
 
 ## 🤝 Contributing
 
@@ -119,26 +93,3 @@ This package is open-sourced software licensed under the [MIT License](https://o
 - [GitHub Repository](https://github.com/cslant/laravel-like)
 - [Issues](https://github.com/cslant/laravel-like/issues)
 - [Changelog](prologue/releases)
-
-## 📊 Stats
-
-<p align="center">
-  <a href="https://github.com/cslant/laravel-like?tab=MIT-1-ov-file">
-    <img src="https://img.shields.io/github/license/cslant/laravel-like.svg?style=flat-square" alt="License" />
-  </a>
-  <a href="https://github.com/cslant/laravel-like/releases">
-    <img src="https://img.shields.io/github/release/cslant/laravel-like.svg?style=flat-square" alt="Latest Version" />
-  </a>
-  <a href="https://packagist.org/packages/cslant/laravel-like">
-    <img src="https://img.shields.io/packagist/dt/cslant/laravel-like.svg?style=flat-square" alt="Total Downloads" />
-  </a>
-  <a href="https://github.com/cslant/laravel-like/actions/workflows/setup_test.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/cslant/laravel-like/setup_test.yml?label=tests&branch=main" alt="Test Status" />
-  </a>
-  <a href="https://github.com/cslant/laravel-like/actions/workflows/php-cs-fixer.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/cslant/laravel-like/php-cs-fixer.yml?label=code%20style&branch=main" alt="Code Style Status" />
-  </a>
-  <a href="https://scrutinizer-ci.com/g/cslant/laravel-like">
-    <img src="https://img.shields.io/scrutinizer/g/cslant/laravel-like.svg?style=flat-square" alt="Quality Score" />
-  </a>
-</p>

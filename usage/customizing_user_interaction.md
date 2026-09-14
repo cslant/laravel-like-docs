@@ -7,58 +7,65 @@ tags: ['Customization', 'User Interaction', 'Custom Model', 'Configuration', 'Ad
 
 # Customizing User Interaction
 
-This guide explains how to customize user interactions in the Laravel Like package. You can extend the default behavior by creating custom interaction models, configuring user models, and adding your own interaction logic.
+This guide explains how to customize interactions in the Laravel Like package. You can extend the default behavior with custom interaction models, configure different user models, and add your own interaction logic.
 
 ## Prerequisites
 
-- Laravel 9.0 or higher
-- PHP 8.1 or higher
-- Laravel Like package installed and configured
-- Basic understanding of [User Interaction Trait](user_interaction_trait.md)
+- [Installation](../getting-started/installation.md) completed
+- Basic understanding of the [User Interaction Trait](user_interaction_trait.md)
 
-## Custom User Model Configuration
+## Custom user model
 
-If your application uses a custom user model or a different primary key, update the `config/like.php` file:
+If your application uses a different User model or a custom foreign key, update `config/like.php`:
 
 ```php
 // config/like.php
 return [
-    'interaction_model' => \CSlant\LaravelLike\Models\Like::class,
-
     'users' => [
-        'model' => \App\Models\CustomUser::class,  // Your custom user model
-        'foreign_key' => 'author_id',                // Custom foreign key
+        'model' => \App\Modules\User\CustomUser::class, // Custom user model
+        'foreign_key' => 'author_id',                    // Custom foreign key
     ],
 ];
 ```
 
-## Custom Interaction Model
+When `model` is `null`, the package automatically falls back to `config('auth.providers.users.model')`.
 
-You can create a custom interaction model to extend the default `Like` model with additional fields or methods.
+:::warning Migration
 
-### Step 1: Create the Custom Model
+If you change the foreign key, the `likes` table must use the same column name. Run `php artisan migrate:rollback` and `php artisan migrate` afterwards, or write a migration to rename the column.
+
+:::
+
+## Custom interaction model
+
+You can extend the default `Like` model with additional fields or methods.
+
+### Step 1: Create the custom model
+
+Extend `CSlant\LaravelLike\Models\Like`:
 
 ```php
 namespace App\Models;
 
 use CSlant\LaravelLike\Models\Like;
 
-class Interaction extends Like
+class CustomLike extends Like
 {
     /**
-     * Additional fillable attributes.
+     * Base fillable fields are inherited from Like.
+     * Append your additional fields here.
      */
     protected $fillable = [
         'user_id',
         'model_id',
         'model_type',
         'type',
-        'comment',    // Custom field
-        'metadata',   // Custom field
+        'comment',
+        'metadata',
     ];
 
     /**
-     * Custom cast attributes.
+     * Custom casts.
      */
     protected $casts = [
         'model_type' => 'string',
@@ -67,16 +74,18 @@ class Interaction extends Like
     ];
 
     /**
-     * Get a summary of the interaction.
+     * A custom accessor for the record.
      */
     public function getSummaryAttribute(): string
     {
-        return "{$this->user->name} {$this->type->value}d this content";
+        return "{$this->user->name} marked this content as {$this->interaction_type}";
     }
 }
 ```
 
-### Step 2: Create a Migration for Custom Fields
+> The `type` cast, `user()` / `model()` relationships, UUID handling, and `interaction_type` accessor all come for free from the base `Like` model.
+
+### Step 2: Add a migration for the new columns
 
 ```php
 use Illuminate\Database\Migrations\Migration;
@@ -102,19 +111,26 @@ return new class extends Migration
 };
 ```
 
-### Step 3: Update Configuration
+### Step 3: Point the config at your model
 
 ```php
 // config/like.php
 return [
-    'interaction_model' => \App\Models\Interaction::class,
-    // ...
+    'interaction_model' => \App\Models\CustomLike::class,
 ];
 ```
 
-## Extending the UserHasInteraction Trait
+After this, **every** relationship and action returns your `CustomLike` instances:
 
-You can override methods from the `UserHasInteraction` trait in your User model:
+```php
+$post->like();                  // returns App\Models\CustomLike
+$post->likes()->get();          // collection of CustomLike
+auth()->user()->likes()->get(); // collection of CustomLike
+```
+
+## Extending the `UserHasInteraction` trait
+
+Override or add methods in your User model:
 
 ```php
 use CSlant\LaravelLike\UserHasInteraction;
@@ -125,7 +141,7 @@ class User extends Authenticatable
     use UserHasInteraction;
 
     /**
-     * Get only liked content by this user.
+     * The user's liked content (scoped to a type).
      */
     public function likedContent()
     {
@@ -133,23 +149,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get only disliked content by this user.
-     */
-    public function dislikedContent()
-    {
-        return $this->likes()->where('type', 'dislike');
-    }
-
-    /**
-     * Get only loved content by this user.
-     */
-    public function lovedContent()
-    {
-        return $this->likes()->where('type', 'love');
-    }
-
-    /**
-     * Get interactions for a specific model type.
+     * Interactions scoped to a specific model class.
      */
     public function interactionsFor(string $modelClass)
     {
@@ -158,90 +158,68 @@ class User extends Authenticatable
 }
 ```
 
-### Usage
+Usage:
 
 ```php
 $user = User::find(1);
 
-// Get all liked posts
 $likedPosts = $user->likedContent()
     ->where('model_type', Post::class)
     ->with('model')
     ->get();
 
-// Get all interactions for articles
 $articleInteractions = $user->interactionsFor(Article::class)->get();
 ```
 
-## Custom Interaction Types
+## Interaction types
 
-The package uses the `InteractionTypeEnum` enum with built-in types: `like`, `dislike`, and `love`. If you want to add custom logic based on these types:
+The package ships a fixed string-backed enum, `InteractionTypeEnum`, with four cases:
 
 ```php
 use CSlant\LaravelLike\Enums\InteractionTypeEnum;
 
-class User extends Authenticatable
-{
-    use UserHasInteraction;
+InteractionTypeEnum::NEUTRAL;                                    // 'neutral'
+InteractionTypeEnum::LIKE;                                       // 'like'
+InteractionTypeEnum::DISLIKE;                                    // 'dislike'
+InteractionTypeEnum::LOVE;                                       // 'love'
 
-    /**
-     * Get the user's interaction stats.
-     */
-    public function getInteractionStats(): array
-    {
-        $interactions = $this->likes()->get();
-
-        return [
-            'likes' => $interactions->where('type', InteractionTypeEnum::LIKE)->count(),
-            'dislikes' => $interactions->where('type', InteractionTypeEnum::DISLIKE)->count(),
-            'loves' => $interactions->where('type', InteractionTypeEnum::LOVE)->count(),
-            'total' => $interactions->count(),
-        ];
-    }
-
-    /**
-     * Get the user's most interacted content type.
-     */
-    public function getMostInteractedType(): ?string
-    {
-        return $this->likes()
-            ->selectRaw('model_type, COUNT(*) as count')
-            ->groupBy('model_type')
-            ->orderByDesc('count')
-            ->value('model_type');
-    }
-}
+InteractionTypeEnum::LIKE->isLike();                             // true
+InteractionTypeEnum::getValuesAsStrings();                      // ['like', 'dislike', 'love']
+InteractionTypeEnum::getTypeByValue('like') === InteractionTypeEnum::LIKE; // true
+InteractionTypeEnum::isValid('love');                           // true
+InteractionTypeEnum::isValid('star');                           // false
 ```
 
-## Practical Example: User Dashboard
+:::caution Adding custom types
+
+The enum cases are **fixed** to `like`, `dislike`, and `love`. Adding a brand-new type (e.g. "star") would require overriding the enum, the migration's unique constraint, and the `getValuesAsStrings()` list. For custom behaviour, prefer adding **extra columns** to a custom interaction model (see above) over inventing new types.
+
+:::
+
+### Stats based on interaction types
+
+Valid patterns for aggregating by type:
 
 ```php
-// In your controller
-public function dashboard()
+public function getInteractionStats(): array
 {
-    $user = auth()->user();
+    $interactions = $this->likes()->get();
 
-    $data = [
-        'stats' => $user->getInteractionStats(),
-        'recent_likes' => $user->likedContent()
-            ->with('model')
-            ->latest()
-            ->take(5)
-            ->get(),
-        'recent_loves' => $user->lovedContent()
-            ->with('model')
-            ->latest()
-            ->take(5)
-            ->get(),
+    return [
+        'likes'    => $interactions->where('type', InteractionTypeEnum::LIKE)->count(),
+        'dislikes' => $interactions->where('type', InteractionTypeEnum::DISLIKE)->count(),
+        'loves'    => $interactions->where('type', InteractionTypeEnum::LOVE)->count(),
+        'total'    => $interactions->count(),
     ];
-
-    return view('dashboard', $data);
 }
 ```
+
+## A note on relationship collisions
+
+`UserHasInteraction` defines `likes()` as a **hasMany**. `HasLike`/`HasLove` define `likes()` as a **morphMany**. These two must never be composed on the same model — put `UserHasInteraction` only on your User model, and `HasLike`/`HasLove` only on your content models.
 
 ## Next Steps
 
-- Learn about [User Interaction Trait](user_interaction_trait.md) for basic setup
-- Check out [Change Default Interaction](change_default_interaction.md) model
-- Explore [Query Scopes](query_scopes.md) for advanced queries
-
+- [Change the default interaction model](change_default_interaction.md) — swap `interaction_model` in config
+- [Query scopes](query_scopes.md) — advanced queries
+- [Performance](performance.md) — keep custom queries fast

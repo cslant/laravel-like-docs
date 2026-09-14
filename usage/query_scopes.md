@@ -1,262 +1,195 @@
 ---
 title: Query Scopes | Laravel Like
-description: Learn how to use and create powerful query scopes with the Laravel Like package to filter and sort your content based on interactions.
-keywords: ['laravel like', 'query scopes', 'filtering', 'sorting', 'eloquent', 'database queries']
+description: Learn how to query and filter interactable content with the Laravel Like package, using relationships, whereHas, withCount, and custom scopes.
+keywords: ['laravel like', 'query scopes', 'filtering', 'sorting', 'eloquent', 'database queries', 'whereHas', 'withCount']
 tags: ['Query Scopes', 'Filtering', 'Sorting', 'Eloquent', 'Performance', 'Tutorial']
 ---
 
-# Query Scopes with Laravel Like
+# Querying and Filtering Interactable Content
 
-This guide covers how to use and create custom query scopes with the Laravel Like package to build powerful and efficient queries for your interactive content.
+This guide covers how to query interactable content. The package intentionally does **not** ship global query scopes on content models — instead it gives you rich relationship helpers, and you compose your own queries (and local scopes) with standard Eloquent.
 
 ## Prerequisites
 
-- Laravel 9.0 or higher
-- PHP 8.1 or higher
-- Laravel Like package installed and configured
-- Models set up with the `HasLike` trait
+- [Installation](../getting-started/installation.md) completed
+- `HasLike` / `HasLove` trait on your content model
 
-## Built-in Scopes
+## What the package provides
 
-The Laravel Like package comes with several useful query scopes out of the box.
+These are the query-building building blocks:
 
-### Filtering by Interaction
+| Helper | Kind | Purpose |
+| --- | --- | --- |
+| `likes()` | `MorphMany` | all interactions of a model |
+| `likeTo()` / `dislikeTo()` | `MorphOne` | the model's like / dislike singleton |
+| `likesTo()` / `dislikesTo()` | `MorphMany` | a model's likes / dislikes |
+| `loveTo()` / `lovesTo()` | `MorphMany` | a model's loves (requires `HasLove`) |
+| `withInteractionBy($userId, ?enum)` | `MorphMany` | a user's interactions on a model |
+| `Like::withModelType($class)` | Eloquent scope | filter `Like` records by model class |
+| `Like::where('type', ...)` | Eloquent | filter by interaction type |
+
+## Filtering a user's interactions on a model
 
 ```php
-// Get posts liked by a specific user
-$userLikedPosts = Post::whereLikedBy($userId)->get();
+use CSlant\LaravelLike\Enums\InteractionTypeEnum;
 
-// Get posts disliked by a specific user
-$userDislikedPosts = Post::whereDislikedBy($userId)->get();
+$post = Post::find(1);
+$userId = auth()->id();
 
-// Get posts loved by a specific user
-$userLovedPosts = Post::whereLovedBy($userId)->get();
+// All of this user's interactions on the post
+$rows = $post->withInteractionBy($userId)->get();
 
-// Get posts with a specific interaction type
-$likedPosts = Post::whereHasInteraction('like')->get();
-$dislikedPosts = Post::whereHasInteraction('dislike')->get();
-$lovedPosts = Post::whereHasInteraction('love')->get();
+// Only likes
+$likes = $post->withInteractionBy($userId, InteractionTypeEnum::LIKE)->get();
 
-// Get posts with any interaction
-$interactedPosts = Post::whereHasAnyInteraction()->get();
-
-// Get posts with no interactions
-$uninteractedPosts = Post::whereDoesntHaveAnyInteraction()->get();
+// Exists check (queries with EXISTS, no N+1)
+$liked = $post->withInteractionBy($userId, InteractionTypeEnum::LIKE)->exists();
 ```
 
-### Sorting by Interaction Counts
+## Filter content by interaction count
+
+Use Eloquent's `whereHas()` with the pre-filtered relations. Because `likesTo()`/`dislikesTo()`/`lovesTo()` are already filtered to a single type, the inner constraint is usually unnecessary:
 
 ```php
-// Order by number of likes (descending)
-$posts = Post::orderByLikesCount('desc')->get();
+// Posts with at least 10 likes (from any users)
+$popular = Post::whereHas('likesTo', fn ($q) => $q, '>=', 10)->get();
 
-// Order by number of dislikes (ascending)
-$posts = Post::orderByDislikesCount('asc')->get();
+// Or without the redundant closure (PHP 8.0+ allows omitting it entirely):
+$popular = Post::whereHas('likesTo', '>=', 10)->get();
 
-// Order by number of loves (descending)
-$posts = Post::orderByLovesCount('desc')->get();
+// Posts with at least 5 dislikes
+$controversial = Post::whereHas('dislikesTo', '>=', 5)->get();
 
-// Order by interaction score (likes - dislikes)
-$posts = Post::orderByInteractionScore('desc')->get();
+// Posts with NO dislikes
+$clean = Post::whereDoesntHave('dislikesTo')->get();
 ```
 
-## Creating Custom Scopes
-
-### Basic Interaction Scope
+When you do need a custom constraint inside the relation, pass a closure:
 
 ```php
-// In your Post model
-public function scopePopular($query, $minLikes = 10)
-{
-    return $query->withCount('likes')
-        ->having('likes_count', '>=', $minLikes)
-        ->orderBy('likes_count', 'desc');
-}
-
-// Usage
-$popularPosts = Post::popular(20)->get(); // Posts with at least 20 likes
+// Posts with at least 10 likes created in the last week
+$recentlyPopular = Post::whereHas('likesTo', function ($q) {
+    $q->where('created_at', '>=', now()->subWeek());
+}, '>=', 10)->get();
 ```
 
-### Time-based Interaction Scope
+## Filter by exact user
+
+Need "posts this specific user liked"? Two options.
+
+**Option A — relationship on the Post** (matches the user's interactions):
 
 ```php
-public function scopeTrending($query, $hours = 24, $minInteractions = 5)
-{
-    $cutoff = now()->subHours($hours);
-    
-    return $query->whereHas('interactions', function($q) use ($cutoff) {
-        $q->where('created_at', '>=', $cutoff);
-    }, '>=', $minInteractions)
-    ->withCount(['interactions as recent_interactions' => function($q) use ($cutoff) {
-        $q->where('created_at', '>=', $cutoff);
-    }])
-    ->orderBy('recent_interactions', 'desc');
-}
-
-// Usage
-$trendingPosts = Post::trending(48, 10)->get(); // Last 48 hours, min 10 interactions
+$likedByUser = Post::whereHas('likes', function ($q) use ($userId) {
+    $q->where('user_id', $userId)
+      ->where('type', 'like');
+})->get();
 ```
 
-### Interaction Ratio Scope
+**Option B — start from the User side** (returns `Like` rows, or the models via the morph):
 
 ```php
-public function scopeHighQuality($query, $minRatio = 0.8, $minInteractions = 5)
-{
-    return $query->withCount(['likes', 'dislikes'])
-        ->havingRaw('likes_count >= ?', [$minInteractions])
-        ->havingRaw('likes_count / (likes_count + COALESCE(dislikes_count, 0)) >= ?', [$minRatio])
-        ->orderByRaw('likes_count / (likes_count + COALESCE(dislikes_count, 0)) DESC');
-}
-
-// Usage
-$highQualityPosts = Post::highQuality(0.9, 10)->get(); // 90%+ like ratio, min 10 likes
+$likedPosts = \CSlant\LaravelLike\Models\Like::withModelType(Post::class)
+    ->where('user_id', $userId)
+    ->where('type', 'like')
+    ->with('model')
+    ->get()
+    ->pluck('model');
 ```
 
-## Combining Scopes
-
-You can chain multiple scopes together for more complex queries:
+## Sorting by interaction count
 
 ```php
-// Get popular, high-quality posts from the last week
-$posts = Post::popular(50)
-    ->highQuality(0.85, 20)
-    ->where('created_at', '>=', now()->subWeek())
-    ->orderBy('created_at', 'desc')
+// Posts sorted by like count, descending
+$trending = Post::query()
+    ->withCount('likesTo as likes_count')
+    ->orderBy('likes_count', 'desc')
     ->paginate(15);
 ```
 
-## Performance Considerations
-
-### Eager Loading
-
-Always eager load relationships to avoid N+1 query problems:
+Combine counts for popularity scores:
 
 ```php
-// Good: Uses eager loading
-$posts = Post::withCount(['likes', 'dislikes', 'loves'])
-    ->popular()
+// Posts with a like-heavy ratio
+$highQuality = Post::query()
+    ->withCount([
+        'likesTo as likes_count',
+        'dislikesTo as dislikes_count',
+    ])
+    ->orderByDesc('likes_count')
     ->get();
+```
 
-// Bad: Causes N+1 queries
-$posts = Post::popular()->get();
-foreach ($posts as $post) {
-    echo $post->likes_count; // This would cause an additional query per post
+## Writing your own local scopes
+
+Wrap the building blocks above into reusable local scopes on your models:
+
+```php
+class Post extends Model
+{
+    use HasLike, HasLove;
+
+    public function scopePopular($query, int $minLikes = 10)
+    {
+        return $query->withCount('likesTo as likes_count')
+            ->having('likes_count', '>=', $minLikes)
+            ->orderBy('likes_count', 'desc');
+    }
+
+    public function scopeTrending($query, int $hours = 24, int $min = 5)
+    {
+        $cutoff = now()->subHours($hours);
+
+        return $query->whereHas('likes', function ($q) use ($cutoff) {
+                $q->where('created_at', '>=', $cutoff);
+            }, '>=', $min)
+            ->withCount(['likes as recent_likes' => function ($q) use ($cutoff) {
+                $q->where('created_at', '>=', $cutoff);
+            }])
+            ->orderByDesc('recent_likes');
+    }
 }
 ```
 
-### Database Indexing
-
-Ensure your database is properly indexed. Add these to a migration:
+Usage:
 
 ```php
-public function up()
+$popular  = Post::popular(20)->get();                       // at least 20 likes
+$trending = Post::trending(48, 10)->paginate(15);           // last 48h, ≥10 interactions
+```
+
+## Combining queries
+
+Scopes chain like any Eloquent query:
+
+```php
+$results = Post::query()
+    ->popular(50)
+    ->where('published_at', '>=', now()->subWeek())
+    ->orderByDesc('created_at')
+    ->paginate(15);
+```
+
+## Performance tips
+
+1. **Use `withCount`** — never call `$post->likesCount()` inside a loop.
+2. **Prefer `EXISTS`** — predicates like `isLiked()` already use `whereExists`, which is cheap.
+3. **Indexes** — the published migration already adds a unique index on `(user_id, model_id, model_type, type)`. For larger datasets consider extra indexes:
+
+```php
+public function up(): void
 {
     Schema::table('likes', function (Blueprint $table) {
-        // For filtering by model
         $table->index(['model_type', 'model_id', 'type']);
-        
-        // For finding user interactions
         $table->index(['user_id', 'type']);
-        
-        // For time-based queries
-        $table->index('created_at');
     });
 }
 ```
 
-### Caching Expensive Queries
-
-Cache the results of expensive queries:
-
-```php
-use Illuminate\Support\Facades\Cache;
-
-public function getTopPosts($limit = 10)
-{
-    $cacheKey = 'top_posts_' . $limit;
-    $minutes = 30; // Cache for 30 minutes
-    
-    return Cache::remember($cacheKey, $minutes, function () use ($limit) {
-        return Post::withCount(['likes', 'comments'])
-            ->orderByInteractionScore('desc')
-            ->limit($limit)
-            ->get();
-    });
-}
-
-// In your controller
-$topPosts = $this->getTopPosts(10);
-```
-
-## Real-world Examples
-
-### Most Controversial Content
-
-```php
-public function scopeControversial($query, $minInteractions = 10)
-{
-    return $query->withCount(['likes', 'dislikes'])
-        ->havingRaw('(likes_count + dislikes_count) >= ?', [$minInteractions])
-        ->orderByRaw('ABS(likes_count - dislikes_count)') // Closest to equal
-        ->orderByRaw('(likes_count + dislikes_count) DESC'); // Most interactions first
-}
-
-// Usage
-$controversialPosts = Post::controversial(20)->get();
-```
-
-### Recently Popular Content
-
-```php
-public function scopeRecentlyPopular($query, $days = 7, $minLikes = 10)
-{
-    $cutoff = now()->subDays($days);
-    
-    return $query->whereHas('likes', function($q) use ($cutoff) {
-        $q->where('created_at', '>=', $cutoff);
-    }, '>=', $minLikes)
-    ->withCount(['likes as recent_likes' => function($q) use ($cutoff) {
-        $q->where('created_at', '>=', $cutoff);
-    }])
-    ->orderBy('recent_likes', 'desc');
-}
-
-// Usage
-$recentlyPopular = Post::recentlyPopular(14, 25)->get(); // Last 14 days, min 25 likes
-```
-
-## Testing Your Scopes
-
-Create tests to ensure your scopes work as expected:
-
-```php
-// tests/Feature/PostScopesTest.php
-public function test_popular_scope()
-{
-    // Create posts with different like counts
-    $unpopularPost = Post::factory()->create();
-    $popularPost = Post::factory()->hasLikes(15)->create();
-    
-    // Test the scope
-    $results = Post::popular(10)->get();
-    
-    $this->assertCount(1, $results);
-    $this->assertTrue($results->contains('id', $popularPost->id));
-    $this->assertFalse($results->contains('id', $unpopularPost->id));
-}
-```
-
-## Common Pitfalls
-
-1. **N+1 Queries**: Always use `withCount()` when you need counts
-2. **Missing Indexes**: Ensure proper database indexes for performance
-3. **Complex Queries**: Break down complex queries into smaller scopes
-4. **Caching**: Cache expensive queries when appropriate
+4. **Cache hot lists** — wrap expensive sorted queries in `Cache::remember`.
 
 ## Next Steps
 
-- Learn about [customizing interactions](customizing_user_interaction.md)
-- Check out [filtering by interaction counts](filtering_by_like_count.md)
-- Explore [counting interactions](counting_interactions.md) for more statistics
-
-For more advanced usage, refer to the [GitHub Repository](https://github.com/cslant/laravel-like).
+- [Filtering by interaction count](filtering_by_like_count.md) — popularity sorting
+- [Counting interactions](counting_interactions.md) — aggregation recipes
+- [The Like model](like_manager.md) — querying the shared interactions table

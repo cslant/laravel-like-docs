@@ -1,109 +1,88 @@
 ---
 title: Diagrams and Flow - Laravel Like
-description: Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package.
-keywords: ['Workflow', 'Flow', 'Laravel Like Workflow', 'Laravel Like Flow', 'Laravel Like package flow', 'Laravel Like package workflow']
-tags: ['Flowchart', 'Usage', 'Support', 'Development', 'Entity Relationship Diagram', 'ERD', 'Laravel Like Diagrams', 'Laravel Like Flow', 'Laravel Like Workflow']
+description: Workflow and ERD of Laravel Like package. Understand the flow, data model, and interaction lifecycle.
+keywords: ['Workflow', 'Flow', 'Laravel Like Workflow', 'Laravel Like Flow', 'ERD', 'Laravel Like Diagrams', 'Laravel Like Flow']
+tags: ['Flowchart', 'Development', 'Entity Relationship Diagram', 'ERD', 'Laravel Like Diagrams']
 hide_title: true
 ---
 
-<head>
-  <meta name="robots" content="index,follow" />
-  <meta name="author" content="CSlant" />
-  <meta name="generator" content="Docusaurus" />
-  <meta name="theme-color" content="#2e8555" />
-  
-  <link rel="canonical" href="https://docs.cslant.com/laravel-like/development/laravel-like-flow" />
-  
-  <meta property="og:title" content="Diagrams and Flow - Laravel Like" />
-  <meta property="og:description" content="Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package." />
-  <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://docs.cslant.com/laravel-like/development/laravel-like-flow" />
-  <meta property="og:site_name" content="Laravel Like Package Documentation" />
-  <meta property="og:locale" content="en_US" />
-  
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Diagrams and Flow - Laravel Like" />
-  <meta name="twitter:description" content="Workflow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package." />
-  <meta name="twitter:creator" content="@cslantofficial" />
-  <meta name="twitter:site" content="@cslantofficial" />
-  
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  
-  <meta property="article:published_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:modified_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:author" content="CSlant" />
-  <meta property="article:section" content="Documentation" />
-  
-  </head>
-
-# 📊 Laravel Like Diagrams and Flow
-
-Here are the diagrams and flow of Laravel Like package. Check out the workflow of Laravel Like package. Understand the flow of Laravel Like package.
+# 📊 Laravel Like — Diagrams and Flow
 
 ## Entity Relationship Diagram (ERD)
 
-The Entity Relationship Diagram (ERD) of Laravel Like package is shown below:
-
 ```mermaid
 erDiagram
-    Like ||--o| User : "liked by"
-    Post ||--o{ Like : "has"
-    User ||--o{ Like : "liked on"
-    User ||--o{ Post : "has"
-    Like ||--o| Post : "liked on"
-
-    User {
-        string name
-        string email
-        string password
-    }
-
-    Post {
-        string title
-        text content
-    }
-
+    User ||--o{ Like : "creates"
+    Like }o--|| Model : "points to (morph)"
     Like {
-        string user_id "The ID of the user who liked the post"
-        string model_type "The type of the model(Post)"
-        int model_id "The ID of the model(Post ID)"
+        int|string id PK "auto-increment or UUID"
+        int|string user_id FK "foreign key to users"
+        int|string model_id "polymorphic"
+        string model_type "polymorphic"
+        string type "'like' | 'dislike' | 'love'"
+        timestamp created_at
+        timestamp updated_at
+    }
+    Model {
+        int|string id
+        string name
     }
 ```
 
-:::info[Explanation of the ERD]
+### How it works
 
-- A `User` can like multiple `Post`.
-- A `Post` can have multiple `Like`.
-- A `User` can have multiple `Like`.
-- A `Like` can be associated with a `User` and a `Post`.
+- A `User` creates zero or more `Like` rows.
+- A `Like` is associated with **one concrete model** through a polymorphic `model_id` + `model_type` pair — that model can be a `Post`, `Video`, `Article`, or any other `Model` with the `HasLike` / `HasLove` trait.
+- **Single-active invariant:** a unique constraint on `(user_id, model_id, model_type, type)` means one interaction type per user per model at a time.
 
-:::
+---
 
-## Laravel Like Flow
+## Interaction lifecycle
 
-The flow of Laravel Like package is shown below:
+```mermaid
+stateDiagram-v2
+    [*] --> like : like()
+    like --> [*] : unlike()
+    like --> dislike : toggle()  [was like]
+    dislike --> [*] : unDislike()
+    dislike --> like : toggle()  [was dislike]
+    like --> [*] : toggle()  [was like → delete]
+    [*] --> dislike : dislike()
+    [*] --> love : love()
+    love --> [*] : unlove()
+    love --> love : toggle()  [no-op, unchanged]
+    love --> like : like()
+```
+
+| Current | Action | Result |
+| --- | --- | --- |
+| *(none)* | `like()` | `LIKE` row created |
+| *(none)* | `toggle()` | `LIKE` row created |
+| `like` | `toggle()` | Removed — returns `null` |
+| `like` | `dislike()` | Old `like` deleted, new `dislike` created |
+| `dislike` | `toggle()` | Changed to `like` |
+| `love` | `toggle()` | No change — returns existing `love` row |
+
+All mutations above run inside `DB::transaction`.
+
+---
+
+## Component map
 
 ```mermaid
 graph TD
-    A[User] -->|Likes| B(Post)
-    B -->|Liked by| A
-    B -->|Has| C(Like)
-    C -->|Liked on| A
-    C -->|Liked on| B
+    A[Post / Content Model] -- HasLike / HasLove --> B[InteractionRelationship trait]
+    B -- like() / dislike() / toggle() --> C[LikeManager singleton]
+    B -- likes() morphMany --> D[Like Eloquent Model]
+    B -- likesTo / dislikesTo / lovesTo --> D
+    C -- wraps --> D
+    E[User model] -- UserHasInteraction --> F[likes() hasMany]
+    F --> D
+    G["Like / Love Facade"] -- proxies --> C
+    D -- relationships --> H[User BelongsTo]
+    D -- relationships --> I[Model MorphTo]
 ```
 
-:::info[Explanation of the flow]
-
-- A `User` likes a `Post`.
-- The `Post` is liked by the `User`.
-- The `Post` has a `Like`.
-- The `Like` is liked on the `User` and the `Post`.
-
-:::
-
-## Conclusion
-
-This is the flow and ERD of Laravel Like package. You can use this information to understand the workflow of Laravel Like package.
+- **`LikeManager`** — the single service behind all actions; binds as `CSlant\LaravelLike\Contracts\LikeManager`.
+- **`Like` model** — the shared interaction record; owns `user()` / `model()` relationships and the `interaction_type` accessor.
+- **Facade** — static proxy for convenience; `Like` and `Love` facades point to the same singleton.

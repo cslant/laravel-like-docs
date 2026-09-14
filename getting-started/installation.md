@@ -1,58 +1,25 @@
 ---
-title: Installation | Laravel Laravel Like
+title: Installation | Laravel Like
 description: Installation instructions for Laravel Like package. Install the package via composer, publish the config file, and migrate the database.
 keywords: ["Laravel Like", "installation", "install Laravel Like", 'get started', 'Laravel Like get started', 'composer', 'publish config', 'migrate database']
 tags: ["Installation", "Get Started", "Composer", "Publish Config", "Laravel Like", "Migrate Database", "Laravel Like Installation", "Interactions", "Likes", "Dislikes", "Favorites", "Stars", "Upvotes", "Downvotes", "Reactions", "Votes", "Laravel Like Package", "Import Trait", "User Model", "Model"]
 ---
 
-<head>
-  <meta name="robots" content="index,follow" />
-  <meta name="author" content="CSlant" />
-  <meta name="generator" content="Docusaurus" />
-  <meta name="theme-color" content="#2e8555" />
-  
-  <link rel="canonical" href="https://docs.cslant.com/laravel-like/getting-started/installation" />
-  
-  <meta property="og:title" content="Installation | Laravel Laravel Like" />
-  <meta property="og:description" content="Installation instructions for Laravel Like package. Install the package via composer, publish the config file, and migrate the database." />
-  <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://docs.cslant.com/laravel-like/getting-started/installation" />
-  <meta property="og:site_name" content="Laravel Like Package Documentation" />
-  <meta property="og:locale" content="en_US" />
-  
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Installation | Laravel Laravel Like" />
-  <meta name="twitter:description" content="Installation instructions for Laravel Like package. Install the package via composer, publish the config file, and migrate the database." />
-  <meta name="twitter:creator" content="@cslantofficial" />
-  <meta name="twitter:site" content="@cslantofficial" />
-  
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  
-  <meta property="article:published_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:modified_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:author" content="CSlant" />
-  <meta property="article:section" content="Documentation" />
-  
-  </head>
-
 # 🔧 Installation
 
 Please read carefully the instructions below and follow them step by step.
 
-## Install the package
+## 1. Install the package
 
-You can **install the package via composer**:
+You can **install the package via Composer**:
 
 ```bash
 composer require cslant/laravel-like
 ```
 
-The package will automatically register its service provider.
+The package will register its `CSlant\LaravelLike\Providers\LikeServiceProvider` automatically via package auto-discovery.
 
-## Publish configuration file
+## 2. Publish the configuration and migration files
 
 :::danger[required]
 
@@ -60,113 +27,124 @@ The package will automatically register its service provider.
 
 :::
 
-You can publish all the necessary configuration and migration files by running the following command:
-
 ```shell
 php artisan vendor:publish --provider="CSlant\LaravelLike\Providers\LikeServiceProvider"
 ```
 
-This is the default content of the config file:
+This publishes two things:
 
-```php
-return [
-    'name' => 'The interactions configuration',
+1. `config/like.php` — the package configuration file
+2. `database/migrations/<timestamp>_create_likes_table.php` — the migration for the interactions table
 
-    /*
-     * The flag to determine if the interactions table should use UUIDs.
-     * If you want to use UUIDs instead of auto-incrementing integers for your interactions table, set this to true.
-     */
-    'is_uuids' => false,
+You can also publish them separately:
 
-    /*
-     * The table name for interaction records.
-     */
-    'table_name' => 'likes',
-
-    /*
-     * The model class for the interaction table.
-     */
-    'interaction_model' => 'CSlant\LaravelLike\Models\Like',
-
-    /*
-     * The model and foreign key for the user relationship.
-     */
-    'users' => [
-        /*
-         * User model class.
-         * Use this to set the user model class for the user relationship.
-         */
-        'model' => 'App\Models\User',
-
-        /*
-         * User tables foreign key name.
-         * Use this to set the foreign key name for the user relationship.
-         */
-        'foreign_key' => 'user_id',
-    ],
-];
+```shell
+php artisan vendor:publish --provider="CSlant\LaravelLike\Providers\LikeServiceProvider" --tag=config
+php artisan vendor:publish --provider="CSlant\LaravelLike\Providers\LikeServiceProvider" --tag=migrations
 ```
 
-## Migrate the database
+:::tip[Everything configurable]
 
-After the configuration file has been published, you can run the migration:
+See the **[configuration page](./configuration)** for every available option (`is_uuids`, `table_name`, `interaction_model`, `users.model`, `users.foreign_key`).
+
+:::
+
+## 3. Run the migration
+
+After the configuration file has been published, run the migration:
 
 ```shell
 php artisan migrate
 ```
 
-The migration will create a `likes` table in your database. This table will store all the likes.
+The migration creates a single `likes` table that stores **all** interactions (likes, dislikes, loves) for **all** interactable models through a polymorphic `model` column pair.
 
-## Import the trait in the appropriate model
+> **Table structure:** `id`, `model_id`, `model_type` (polymorphic morphs), `user_id`, `type`, `created_at`, `updated_at`, with a unique constraint on `(user_id, model_id, model_type, type)`.
 
-Please import the `HasLike` trait in your model to use the package.
+## 4. Add the trait to your content model
 
-For example, you have a `Post` model, and you want to add likes to it. You can import the `HasLike` trait in the `Post` model.
+Add the `HasLike` trait to any model you want to make interactable. This provides like **and** dislike functionality.
 
 ```php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use CSlant\LaravelLike\HasLike;
+use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
     use HasLike;
-    
+
     // Your model code here
 }
 ```
 
-## Import the trait in your User model
+If you only need the love ❤️ surface, use `HasLove` instead (or in addition):
 
-After importing the `HasLike` trait in your model, you need to import the `UserHasInteraction` trait in your `User` model.
+```php
+use CSlant\LaravelLike\HasLove;
 
-### Why need to import the `UserHasInteraction` trait in the `User` model?
+class Post extends Model
+{
+    use HasLike;
+    use HasLove;
 
-The `UserHasInteraction` trait is used to define the relationship between the user and the interactions. 
+    // Now supports: like, dislike AND love
+}
+```
 
-It is required to get the interactions for a user.
+:::warning[Do not add UserHasInteraction to a HasLike/HasLove model]
 
-Also, it provides the methods to interact with the interactions.
+`UserHasInteraction` is meant for the **User** model. It defines a `likes()` **hasMany** relationship, which collides with the `likes()` **morphMany** relationship defined by `HasLike`/`HasLove`. Never compose `UserHasInteraction` together with `HasLike` or `HasLove` on the same model.
 
-### How to import the `UserHasInteraction` trait in the `User` model?
+:::
 
-You can import the `UserHasInteraction` trait in your `User` model like this:
+## 5. Add the trait to your User model
+
+To let the authenticated user interact (and to fetch their interactions), add the `UserHasInteraction` trait to your `User` model:
 
 ```php
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use CSlant\LaravelLike\UserHasInteraction;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
     use UserHasInteraction;
-    
+
     // Your model code here
 }
 ```
 
-That's it! You have successfully installed the Laravel Like package. 🎉
+`UserHasInteraction` adds:
 
----
+- `likes()` — a `HasMany` relationship with all the user's interactions (likes, dislikes, loves)
+- `forgetInteractions()` / `forgetInteractionsOfType()` — bulk-delete the user's interactions
+
+## 6. Optional: register the facade
+
+The `Like` and `Love` facades are usable out of the box via their full class name:
+
+```php
+use CSlant\LaravelLike\Facades\Like;
+
+Like::like($post);
+```
+
+Everything works without registering anything extra. If you want shorter aliases, add them to the `aliases` array in `config/app.php`:
+
+```php
+'aliases' => [
+    // ...
+    'Like' => \CSlant\LaravelLike\Facades\Like::class,
+],
+```
+
+## Done 🎉
+
+That's it! You have successfully installed the Laravel Like package. Now head over to:
+
+- [Liking content](../usage/liking_content) to create your first interaction
+- [The LikeManager & Facade API](../usage/like_manager) for the full API reference
+- [Performance](../usage/performance) to keep your queries fast

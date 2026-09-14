@@ -1,239 +1,159 @@
 ---
 title: Unliking Content | Laravel Like
 description: Learn how to remove interactions (unlike, undislike, unlove) from content in your Laravel application using the Laravel Like package.
-keywords: ['laravel like', 'unlike', 'remove like', 'remove dislike', 'remove interaction', 'undo interaction']
+keywords: ['laravel like', 'unlike', 'remove like', 'remove dislike', 'remove interaction', 'unlove', 'undislike', 'forget interactions']
 tags: ['Basic Usage', 'Unlike', 'Remove Interactions', 'Tutorial']
 ---
 
 # Unliking and Removing Interactions
 
-This guide explains how to remove interactions from your content using the Laravel Like package. You can remove specific interactions by user, remove all interactions of a certain type, or clear all interactions entirely.
+This guide explains how to remove interactions from your content using the Laravel Like package. You can remove specific interactions by type, clear all interactions on a model, or wipe a user's entire interaction history.
 
 ## Prerequisites
 
-- Laravel 9.0 or higher
-- PHP 8.1 or higher
-- Laravel Like package installed and configured
-- Models set up with the `HasLike` trait (see [Liking Content](liking_content.md))
+- [Installation](../getting-started/installation.md) completed
+- `HasLike` / `HasLove` trait on your content model
 
-## Removing Interactions from Content Models
+## Remove interaction by type
 
-The `HasLike` trait (via `InteractionRelationship`) provides methods to remove interactions directly from your content models.
+### Unlike, undislike, unlove (single row)
 
-### Remove All Interactions
-
-Use `forgetInteractions()` to remove all interactions from a model:
-
-```php
-$post = Post::find(1);
-
-// Remove ALL interactions (likes, dislikes, loves) from this post
-$post->forgetInteractions();
-```
-
-### Remove Interactions by Type
-
-Use `forgetInteractionsOfType()` or pass a type to `forgetInteractions()` to remove only specific interaction types:
-
-```php
-$post = Post::find(1);
-
-// Remove only likes from this post
-$post->forgetInteractions('like');
-
-// Remove only dislikes from this post
-$post->forgetInteractions('dislike');
-
-// Remove only loves from this post
-$post->forgetInteractions('love');
-
-// Or use forgetInteractionsOfType() directly
-$post->forgetInteractionsOfType('like');
-```
-
-### Remove a Specific User's Interaction
-
-To remove a specific user's interaction from a content model:
+These methods remove a single user's interaction of a specific type. They return `true` if a row was actually deleted, `false` if there was nothing to remove.
 
 ```php
 $post = Post::find(1);
 $userId = auth()->id();
 
-// Remove a specific user's interaction (all types)
-$post->likes()->where('user_id', $userId)->delete();
-
-// Remove only a specific user's like
-$post->likes()
-    ->where('user_id', $userId)
-    ->where('type', 'like')
-    ->delete();
-
-// Remove only a specific user's dislike
-$post->likes()
-    ->where('user_id', $userId)
-    ->where('type', 'dislike')
-    ->delete();
+$post->unlike();     // Removes the LIKE row  → returns bool
+$post->unDislike();  // Removes the DISLIKE row → returns bool
+$post->unlove();     // Removes the LOVE row   → returns bool
 ```
 
-## Removing Interactions from User Models
+Explicit user id variant:
 
-If your User model uses the `UserHasInteraction` trait, you can also remove interactions from the user side:
+```php
+$post->unlike($someOtherUserId);
+```
+
+From the facade:
+
+```php
+use CSlant\LaravelLike\Facades\Like;
+
+Like::unlike($post);
+Like::unDislike($post);
+Like::unlove($post);
+```
+
+All remove operations are **transactional** — they run inside a `DB::transaction` for data consistency.
+
+:::tip Return value
+
+`unlike()` returns `true` if a `LIKE` row was deleted. It returns `false` if the user never liked the model in the first place. The same applies to `unDislike()` and `unlove()`.
+
+:::
+
+---
+
+## Remove all interactions on a model
+
+Use `forgetInteractions()` to delete **all** interaction rows (all users, all types) on a given model:
+
+```php
+$post = Post::find(1);
+
+$post->forgetInteractions();         // Deletes everything
+$post->forgetInteractions('like');   // Deletes only likes (all users)
+$post->forgetInteractions('dislike');
+$post->forgetInteractions('love');
+```
+
+`forgetInteractionsOfType()` is an alias for filtering by a single type:
+
+```php
+$post->forgetInteractionsOfType('like');
+```
+
+:::caution Caution
+
+These methods delete all rows for all users. Use them sparingly — typically only when deleting the parent model itself.
+
+:::
+
+---
+
+## Remove all interactions by a user
+
+The `UserHasInteraction` trait on your User model also provides `forgetInteractions()`:
 
 ```php
 $user = User::find(1);
 
-// Remove all interactions by this user
-$user->forgetInteractions();
+$user->forgetInteractions();       // Removes all of this user's interactions
+$user->forgetInteractions('like');  // Removes only this user's likes
+```
 
-// Remove only likes by this user
-$user->forgetInteractions('like');
+To remove a specific user's interaction on a specific model, use the `likes()` relationship directly:
 
-// Remove a user's interaction on a specific post
-$user->likes()
-    ->where('model_type', Post::class)
-    ->where('model_id', $postId)
+```php
+$post->likes()
+    ->where('user_id', $userId)
     ->delete();
 ```
 
-## Toggle Interaction
+---
 
-The `Like` model provides a `toggleLikeInteraction()` method to toggle between like and dislike:
+## Toggle interactions
 
-```php
-use CSlant\LaravelLike\Models\Like;
+See the dedicated [Toggle Interactions](toggle_interactions.md) page for the `toggle()` method, which cycles between states (like → remove, dislike → like, etc.).
 
-$interaction = Like::where('user_id', $userId)
-    ->where('model_type', Post::class)
-    ->where('model_id', $postId)
-    ->first();
+---
 
-if ($interaction) {
-    // Toggle: if liked → dislike, if disliked → like
-    $newType = $interaction->toggleLikeInteraction();
-    $interaction->save();
+## Practical examples
 
-    echo "Interaction changed to: {$newType}";
-}
-```
-
-## Practical Examples
-
-### Unlike Button in Controller
+### Like button in a controller
 
 ```php
-use CSlant\LaravelLike\Models\Like;
+use CSlant\LaravelLike\Facades\Like;
 
-class PostInteractionController extends Controller
+class PostLikeController extends Controller
 {
-    /**
-     * Remove the user's interaction from a post.
-     */
-    public function unlike(Post $post)
+    public function toggleLike(Post $post)
     {
-        $userId = auth()->id();
+        $liked = $post->isLiked();
 
-        $deleted = $post->likes()
-            ->where('user_id', $userId)
-            ->delete();
-
-        if ($deleted) {
-            return response()->json([
-                'message' => 'Interaction removed successfully',
-                'likes_count' => $post->likesCount(),
-            ]);
+        if ($liked) {
+            $post->unlike();
+            $status = 'unliked';
+        } else {
+            $post->like();
+            $status = 'liked';
         }
 
         return response()->json([
-            'message' => 'No interaction found',
-        ], 404);
-    }
-
-    /**
-     * Toggle the user's like on a post.
-     */
-    public function toggle(Post $post)
-    {
-        $userId = auth()->id();
-
-        $existing = $post->likes()
-            ->where('user_id', $userId)
-            ->first();
-
-        if ($existing) {
-            $existing->delete();
-            return response()->json([
-                'status' => 'removed',
-                'likes_count' => $post->fresh()->likesCount(),
-            ]);
-        }
-
-        $post->likes()->create([
-            'user_id' => $userId,
-            'type' => 'like',
-        ]);
-
-        return response()->json([
-            'status' => 'liked',
-            'likes_count' => $post->fresh()->likesCount(),
+            'status' => $status,
+            'likes_count' => $post->likesCount(),
         ]);
     }
 }
 ```
 
-### Bulk Remove Interactions
+### Bulk remove old interactions
 
 ```php
-// Remove all interactions older than 30 days
-$post = Post::find(1);
-$post->likes()
-    ->where('created_at', '<', now()->subDays(30))
-    ->delete();
+use CSlant\LaravelLike\Models\Like;
 
-// Remove all interactions from a list of users
-$userIds = [1, 2, 3];
-$post->likes()
-    ->whereIn('user_id', $userIds)
+// Remove all interactions older than 90 days for a specific model type
+Like::where('model_type', Post::class)
+    ->where('created_at', '<', now()->subDays(90))
     ->delete();
 ```
 
-### Check Before Removing
-
-```php
-$post = Post::find(1);
-$userId = auth()->id();
-
-// Check if user has interacted before removing
-if ($post->isInteractedBy($userId)) {
-    $post->likes()->where('user_id', $userId)->delete();
-    echo "Interaction removed!";
-} else {
-    echo "No interaction to remove.";
-}
-
-// Check specific type
-if ($post->isLikedBy($userId)) {
-    $post->likes()
-        ->where('user_id', $userId)
-        ->where('type', 'like')
-        ->delete();
-}
-```
-
-## Method Chaining
-
-The `forgetInteractions()` and `forgetInteractionsOfType()` methods return the model instance, so you can chain:
-
-```php
-$post = Post::find(1);
-
-// Remove all likes, then get updated count
-$likesRemaining = $post->forgetInteractionsOfType('like')->likesCount();
-
-echo "Likes remaining: {$likesRemaining}";
-```
+---
 
 ## Next Steps
 
-- Learn about [Liking Content](liking_content.md) to add interactions
-- Check out [Check if Interacted](check_if_interacted.md) to verify status
-- Explore [Counting Interactions](counting_interactions.md) for analytics
+- [Liking content](liking_content.md) — how to add interactions
+- [Toggle interactions](toggle_interactions.md) — cycling between states
+- [Check if interacted](check_if_interacted.md) — verifying interaction status
+- [User Interaction Trait](user_interaction_trait.md) — managing interactions from the user side

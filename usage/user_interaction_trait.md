@@ -1,26 +1,32 @@
 ---
 title: User Interaction Trait | Laravel Like
 description: Learn how to use the UserHasInteraction trait in your User model to track and manage user interactions with the Laravel Like package.
-keywords: ['laravel like', 'user interaction', 'UserHasInteraction', 'user trait', 'user likes', 'track interactions']
+keywords: ['laravel like', 'user interaction', 'UserHasInteraction', 'user trait', 'user likes', 'track interactions', 'userHasInteraction']
 tags: ['User Trait', 'Interactions', 'User Model', 'Tutorial', 'Usage']
 ---
 
 # User Interaction Trait
 
-The `UserHasInteraction` trait allows your **User model** to track and manage all interactions (likes, dislikes, loves) that a user has made. This is different from the `HasLike` trait, which is used on **content models** (Post, Article, etc.).
+The `UserHasInteraction` trait allows your **User model** to track and manage all interactions (likes, dislikes, loves) that a user has made. This is different from the `HasLike` trait, which is used on **content models** (Post, Article, Video, etc.).
+
+| Trait | Model | Relationship |
+| --- | --- | --- |
+| `HasLike` / `HasLove` | Content model (Post, Article, Video) | `likes()` — `MorphMany` (the content has interactions) |
+| `UserHasInteraction` | **User** model | `likes()` — `HasMany` (the user owns interactions) |
 
 ## Prerequisites
 
-- Laravel 9.0 or higher
-- PHP 8.1 or higher
-- Laravel Like package installed and configured
+- [Installation](../getting-started/installation.md) completed
 - User authentication set up
+- A content model with the `HasLike` / `HasLove` trait
 
 ## Setting Up the User Model
 
 Add the `UserHasInteraction` trait to your User model:
 
 ```php
+namespace App\Models;
+
 use CSlant\LaravelLike\UserHasInteraction;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -32,37 +38,58 @@ class User extends Authenticatable
 }
 ```
 
-## Available Methods
+## Available methods
 
-### Get All User Interactions
+The trait provides a `likes()` **HasMany** relationship plus bulk-removal helpers:
 
-The `likes()` method returns a `HasMany` relationship for all interactions made by the user:
+| Method | Returns | Description |
+| --- | --- | --- |
+| `likes()` | `HasMany` | All the user's interaction records |
+| `forgetInteractions(?string $type)` | `static` ($this) | Delete all (or one type of) the user's interactions |
+| `forgetInteractionsOfType(string $type)` | `static` ($this) | Delete a specific interaction type |
+
+## Get all user interactions
 
 ```php
 $user = User::find(1);
 
-// Get all interactions (likes, dislikes, loves) by this user
+// All interactions (likes, dislikes, loves) by this user
 $allInteractions = $user->likes()->get();
 
-// Get only likes
-$userLikes = $user->likes()->where('type', 'like')->get();
-
-// Get only dislikes
+// Filter by type
+$userLikes    = $user->likes()->where('type', 'like')->get();
 $userDislikes = $user->likes()->where('type', 'dislike')->get();
+$userLoves    = $user->likes()->where('type', 'love')->get();
 
-// Get only loves
-$userLoves = $user->likes()->where('type', 'love')->get();
+// Filter by content type
+$postsLiked = $user->likes()
+    ->where('model_type', Post::class)
+    ->where('type', 'like')
+    ->with('model') // eager load the liked content
+    ->get();
 ```
 
-### Using with Eager Loading
-
-You can eager load user interactions to avoid N+1 queries:
+## Count interactions per user
 
 ```php
-// Load users with their interactions
+// Count of all the user's interactions
+$total = $user->likes()->count();
+
+// Count per type
+$likesCount    = $user->likes()->where('type', 'like')->count();
+$dislikesCount = $user->likes()->where('type', 'dislike')->count();
+$lovesCount    = $user->likes()->where('type', 'love')->count();
+```
+
+## Eager loading
+
+Avoid N+1 queries when working with multiple users by eager loading:
+
+```php
+// Users with their interactions
 $users = User::with('likes')->get();
 
-// Count interactions per user
+// Users with interaction counts
 $users = User::withCount('likes')->get();
 
 foreach ($users as $user) {
@@ -70,9 +97,7 @@ foreach ($users as $user) {
 }
 ```
 
-### Forget User Interactions
-
-Remove all interactions or interactions of a specific type for a user:
+## Forget user interactions
 
 ```php
 $user = User::find(1);
@@ -83,32 +108,36 @@ $user->forgetInteractions();
 // Remove only likes by this user
 $user->forgetInteractions('like');
 
-// Remove only dislikes by this user
+// Remove only dislikes
 $user->forgetInteractions('dislike');
 
-// Remove only loves by this user
+// Remove only loves
 $user->forgetInteractions('love');
-```
 
-You can also use the `forgetInteractionsOfType()` method directly:
-
-```php
-// Remove all likes by this user
+// Or use the typed method directly
 $user->forgetInteractionsOfType('like');
 ```
 
-## Practical Examples
+:::tip Chainable
 
-### User Profile: Show Liked Content
+`forgetInteractions()` and `forgetInteractionsOfType()` return the model, so you can chain:
 
 ```php
-// In your controller
+$countAfter = $user->forgetInteractions('like')->likes()->count();
+```
+
+:::
+
+## Practical example: user profile page
+
+```php
 public function profile(User $user)
 {
+    // A user's liked posts (eager-loaded content)
     $likedPosts = $user->likes()
         ->where('type', 'like')
         ->where('model_type', Post::class)
-        ->with('model') // Eager load the related content
+        ->with('model')
         ->latest()
         ->paginate(10);
 
@@ -116,52 +145,36 @@ public function profile(User $user)
 }
 ```
 
-### User Activity Feed
+### User activity feed
 
 ```php
-// Get recent interactions by the user
 $recentActivity = $user->likes()
     ->with('model')
     ->latest()
     ->take(20)
     ->get()
-    ->map(function ($interaction) {
-        return [
-            'type' => $interaction->type->value,
-            'content' => $interaction->model,
-            'date' => $interaction->created_at->diffForHumans(),
-        ];
-    });
-```
-
-### Count Interactions by Type
-
-```php
-$user = User::find(1);
-
-$stats = [
-    'total_likes' => $user->likes()->where('type', 'like')->count(),
-    'total_dislikes' => $user->likes()->where('type', 'dislike')->count(),
-    'total_loves' => $user->likes()->where('type', 'love')->count(),
-];
+    ->map(fn ($interaction) => [
+        'type'    => $interaction->type->value,
+        'content' => $interaction->model,
+        'date'    => $interaction->created_at->diffForHumans(),
+    ]);
 ```
 
 ## Configuration
 
-The trait uses configuration values from `config/like.php`:
+The `likes()` relationship is built from `config/like.php`:
 
 ```php
 'users' => [
-    'model' => 'App\Models\User',      // Your User model class
-    'foreign_key' => 'user_id',          // Foreign key in the likes table
+    'model' => null,             // null = falls back to auth provider model
+    'foreign_key' => 'user_id',  // Foreign key in the likes table
 ],
 ```
 
-If you use a custom user model or a different foreign key, update these values accordingly.
+If you use a custom user model or a different foreign key, update the configuration so the relationship resolves to the correct table/columns.
 
 ## Next Steps
 
-- Learn about [Customizing User Interaction](customizing_user_interaction.md)
-- Check out [Liking Content](liking_content.md) to set up content models
-- Explore [Counting Interactions](counting_interactions.md) for analytics
-
+- [Customizing User Interaction](customizing_user_interaction.md) — custom models and extended behaviour
+- [Liking content](liking_content.md) — set up content models
+- [Counting interactions](counting_interactions.md) — analytics across models

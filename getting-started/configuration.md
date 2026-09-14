@@ -5,39 +5,6 @@ keywords: ["laravel Laravel Like", "configuration", "Laravel Like configuration"
 tags: ["Configuration", "Get Started", "Laravel Like Configuration", "Create Interactions", "Environment Setup", "Laravel Like Package", "Likes", "Dislikes", "Favorites", "Stars", "Upvotes", "Downvotes", "Reactions", "Votes"]
 ---
 
-<head>
-  <meta name="robots" content="index,follow" />
-  <meta name="author" content="CSlant" />
-  <meta name="generator" content="Docusaurus" />
-  <meta name="theme-color" content="#2e8555" />
-  
-  <link rel="canonical" href="https://docs.cslant.com/laravel-like/getting-started/configuration" />
-  
-  <meta property="og:title" content="Configuration Laravel Like" />
-  <meta property="og:description" content="All configuration for Laravel Like package to get started with it. Create interactions, set up the environment, and get the package ready for use." />
-  <meta property="og:type" content="article" />
-  <meta property="og:url" content="https://docs.cslant.com/laravel-like/getting-started/configuration" />
-  <meta property="og:site_name" content="Laravel Like Package Documentation" />
-  <meta property="og:locale" content="en_US" />
-  
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Configuration Laravel Like" />
-  <meta name="twitter:description" content="All configuration for Laravel Like package to get started with it. Create interactions, set up the environment, and get the package ready for use." />
-  <meta name="twitter:creator" content="@cslantofficial" />
-  <meta name="twitter:site" content="@cslantofficial" />
-  
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  
-  <meta property="article:published_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:modified_time" content="2025-07-21T00:00:00Z" />
-  <meta property="article:author" content="CSlant" />
-  <meta property="article:section" content="Documentation" />
-  
-  </head>
-
 # 🛠 Configuration
 
 Here is the default configuration for Laravel Like package. You can customize the configuration as per your requirements.
@@ -48,11 +15,10 @@ Path: `config/like.php`
 
 ```php title="config/like.php"
 return [
-    'name' => 'The interactions configuration',
-
     /*
      * The flag to determine if the interactions table should use UUIDs.
-     * If you want to use UUIDs instead of auto-incrementing integers for your interactions table, set this to true.
+     * If you want to use UUIDs instead of auto-incrementing integers
+     * for your interactions table, set this to true.
      */
     'is_uuids' => false,
 
@@ -72,9 +38,10 @@ return [
     'users' => [
         /*
          * User model class.
-         * Use this to set the user model class for the user relationship.
+         * When null, the package falls back to
+         * config('auth.providers.users.model') automatically.
          */
-        'model' => 'App\Models\User',
+        'model' => null,
 
         /*
          * User tables foreign key name.
@@ -87,74 +54,122 @@ return [
 
 :::warning Note
 
-If you want to change the configuration, you can publish the configuration file in **[the installation step](./installation#publish-configuration-file)**.
+If you want to change the configuration, you can publish the configuration file in **[the installation step](./installation)**.
 
-And if you have already run the migration, **you need rollback the migration and _run it again to apply the changes_**.
+And if you have already run the migration, **you need to roll back the migration and _run it again to apply the changes_**.
 
 ```shell
 php artisan migrate:rollback
 ```
 :::
 
-If you have rolled back the migration, please handle follow to the modification instructions below to customize it to suit your project.
+If you have rolled back the migration, please follow the modification instructions below to customize it to suit your project.
 
-## Change the table name
+---
 
-You can change the table name for interaction records by updating the `table_name` key in the configuration file.
+## Configuration options
 
-```php
-'table_name' => 'interactions',
-```
+### `is_uuids`
 
-So now, the interactions table will be named `interactions`.
-
-## Use UUIDs for interactions
-
-If you want to use UUIDs instead of auto-incrementing integers for your interactions table, set the `is_uuids` key to `true`.
+Use UUIDs instead of auto-incrementing integers for the `id` column in the `likes` table.
 
 ```php
 'is_uuids' => true,
 ```
 
-## Change the user model
+**What happens when enabled:**
 
-Sometimes, you may want to use a different user model for the interactions. 
+- The migration uses `uuid('id')->primary()` instead of `id()`
+- Morph columns use `uuid` instead of the default `integer`
+- The `CSlant\LaravelLike\Models\Like` model automatically generates UUIDs on insert
+- No additional model changes are required — the behaviour is config-driven
 
-Maybe you are using a **modular structure**, or using **another pattern like DDD(Domain-Driven Design)**. That's why you can change the user model class in the configuration file. You can **skip this step** if you are using the default Laravel user model.
+**When to use it:** choose `is_uuids` if you have non-sequential IDs in your application or are running on a database (like CouchDB or MongoDB via a driver) that doesn't support auto-incrementing integers.
 
-Now, update the `model` key in the `users` array to set the user model class.
+:::danger Important
+
+After changing `is_uuids`, you **must** rollback and re-run your migrations. You also need to migrate any existing data manually — the package does not handle this for you.
+
+:::
+
+---
+
+### `table_name`
+
+Customise the interactions table name:
 
 ```php
-'user' => [
-    'model' => \App\Modules\User\CustomUser::class, // Custom the user model class
+'table_name' => 'interactions',
+```
+
+Make sure to re-run the migration after changing this value.
+
+---
+
+### `interaction_model`
+
+Specify a custom interaction model to replace the default `CSlant\LaravelLike\Models\Like` class. Your custom model must extend the default one:
+
+```php
+'interaction_model' => \App\Models\CustomLike::class,
+```
+
+```php
+namespace App\Models;
+
+use CSlant\LaravelLike\Models\Like;
+
+class CustomLike extends Like
+{
+    // Add custom relationships, attributes, or casts
+}
+```
+
+This is useful if you want to add extra columns (via a separate migration), custom relationships, or additional logic to each interaction record.
+
+---
+
+### `users.model`
+
+Set the user model class. When `null` (the default), the package automatically resolves the model from `config('auth.providers.users.model')` — the standard Laravel auth user model.
+
+```php
+'users' => [
+    'model' => null, // Falls back to auth()->user() model
 ],
 ```
 
-:::info Explanation
-- `\App\Modules\User\CustomUser::class` is the custom user model class.
-- You can replace `CustomUser` with your custom user model class.
-:::
-
-## Change the foreign key
-
-If you are using a different foreign key for the user relationship, you can update the `foreign_key` key in the `users` array.
+Change this only if your User model lives in a different namespace:
 
 ```php
-'user' => [
-    'foreign_key' => 'customer_id', // Custom foreign key name for the user relationship
+'users' => [
+    'model' => \App\Modules\User\CustomUser::class,
 ],
 ```
 
-:::info Explanation
-- `customer_id` is the custom foreign key name for the user relationship.
-:::
+---
+
+### `users.foreign_key`
+
+If your `likes` table uses a different column name for the user foreign key, update this:
+
+```php
+'users' => [
+    'foreign_key' => 'author_id',
+],
+```
+
+Make sure the migration table uses the same column name.
+
+---
 
 ## Re-run the migration
 
-After you have made the changes to the configuration file, you need to re-run the migration to apply the changes.
+After you have made any changes to the configuration file, you need to re-run the migration to apply them:
 
 ```shell
+php artisan migrate:rollback
 php artisan migrate
 ```
 
-That's it! You have successfully configured the Laravel Like package. 🎉
+That's it! You have successfully configured the Laravel Like package.

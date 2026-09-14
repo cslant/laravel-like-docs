@@ -1,7 +1,7 @@
 ---
 title: Counting Interactions | Laravel Like
 description: Learn how to count and aggregate interactions (likes, dislikes, loves) in your Laravel application using the Laravel Like package.
-keywords: ['laravel like', 'count interactions', 'like count', 'dislike count', 'love count', 'interaction statistics']
+keywords: ['laravel like', 'count interactions', 'like count', 'dislike count', 'love count', 'interaction statistics', 'likesCount']
 tags: ['Interactions', 'Counting', 'Statistics', 'Aggregation', 'Tutorial']
 ---
 
@@ -11,221 +11,193 @@ This guide explains how to count and aggregate interactions (likes, dislikes, an
 
 ## Prerequisites
 
-- Laravel 9.0 or higher
-- PHP 8.1 or higher
-- Laravel Like package installed and configured
-- Models set up with the `HasLike` trait
+- [Installation](../getting-started/installation.md) completed
+- `HasLike` trait for like/dislike counts, `HasLove` trait for love counts
 
-## Basic Interaction Counts
+## Count methods on the model
 
-### Get Count for a Single Model
+Available when the corresponding trait is added:
+
+| Method | Trait | Returns | Description |
+| --- | --- | --- | --- |
+| `likesCount()` | `HasLike` | `int` | Number of likes |
+| `dislikesCount()` | `HasLike` | `int` | Number of dislikes |
+| `likesCountDigital()` | `HasLike` | `string` | Abbreviated like count (`1.2K`, `3M`) |
+| `dislikesCountDigital()` | `HasLike` | `string` | Abbreviated dislike count |
+| `lovesCount()` | `HasLove` | `int` | Number of loves |
+| `lovesCountDigital()` | `HasLove` | `string` | Abbreviated love count |
 
 ```php
 $post = Post::find(1);
 
-// Get like count
-$likeCount = $post->likeCount; // Using magic property
-// or
-$likeCount = $post->getLikeCount(); // Using method
+$likes    = $post->likesCount();
+$dislikes = $post->dislikesCount();
+$loves    = $post->lovesCount();   // requires HasLove
 
-// Get dislike count
-$dislikeCount = $post->dislikeCount;
-$dislikeCount = $post->getDislikeCount();
-
-// Get love count
-$loveCount = $post->loveCount;
-$loveCount = $post->getLoveCount();
-
-// Get all interaction counts as an array
-$counts = $post->interactionCounts;
-// Returns: ['like' => 5, 'dislike' => 2, 'love' => 3]
+echo $post->likesCountDigital();   // e.g. '1200' → '1.2K'
 ```
 
-### Get Count for Multiple Models
+### How the digital format works
 
-When working with multiple models, use eager loading for better performance:
+`countDigital()` (powered by the `count_digital()` helper) abbreviates large numbers:
+
+| Input | Output |
+| --- | --- |
+| 999 | `999` |
+| 1000 | `1K` |
+| 12500 | `12.5K` |
+| 999500+ | `1M` |
+| 2500000 | `2.5M` |
+
+## Total (all types) on the facade
+
+`totalCount()` counts every interaction type on a model — but it lives on the **LikeManager / facade**, not on the model:
 
 ```php
-// Eager load counts for multiple posts
-$posts = Post::withCount(['likes', 'dislikes', 'loves'])->get();
+use CSlant\LaravelLike\Facades\Like;
+
+$total = Like::totalCount($post); // likes + dislikes + loves
+```
+
+## Counting via relationships
+
+Counts are just single `COUNT` queries, so relationship-level counting works too:
+
+```php
+// All interaction rows (any type)
+$post->likes()->count();
+
+// Only likes
+$post->likesTo()->count();
+
+// Only dislikes
+$post->dislikesTo()->count();
+
+// Only loves (requires HasLove)
+$post->lovesTo()->count();
+```
+
+## Eager-load counts for many models
+
+Instead of calling `likesCount()` in a loop (that *would* be N+1), use `withCount()`:
+
+```php
+// Count of all interactions per post
+$posts = Post::withCount('likes')->get();
+
+// Count of likes, dislikes, and loves separately
+$posts = Post::withCount([
+    'likesTo as likes_count',
+    'dislikesTo as dislikes_count',
+    'lovesTo as loves_count',
+])->get();
 
 foreach ($posts as $post) {
-    echo "Post ID: {$post->id}\n";
-    echo "Likes: {$post->likes_count}\n";
-    echo "Dislikes: {$post->dislikes_count}\n";
-    echo "Loves: {$post->loves_count}\n\n";
+    echo "{$post->likes_count} likes, {$post->dislikes_count} dislikes, {$post->loves_count} loves";
 }
 ```
 
-## Advanced Counting
+:::info Relation names
 
-### Count Interactions by Type
+The package exposes `likes()` plus filtered relations (`likesTo()`, `dislikesTo()`, `lovesTo()`, `likeOne()`, `dislikeTo()`, `loveTo()`). There are **no** `dislikes()` or `loves()` relationship methods — use `likesTo()`/`dislikesTo()`/`lovesTo()` with `withCount`.
 
-```php
-use CSlant\LaravelLike\Enums\InteractionTypeEnum;
+:::
 
-// Count all likes for a model
-$likeCount = $post->interactions()
-    ->where('type', InteractionTypeEnum::LIKE->value)
-    ->count();
+## Query the Like model directly
 
-// Count interactions by multiple types
-$positiveInteractions = $post->interactions()
-    ->whereIn('type', [
-        InteractionTypeEnum::LIKE->value,
-        InteractionTypeEnum::LOVE->value
-    ])
-    ->count();
-```
-
-### Count User Interactions
+All interactions share one `Like` model, so query it directly for cross-model statistics:
 
 ```php
-// Count how many items a user has liked
-$userLikes = Like::where('user_id', $user->id)
+use CSlant\LaravelLike\Models\Like;
+
+// Likes on a specific model class
+$count = Like::where('model_type', Post::class)
     ->where('type', 'like')
     ->count();
 
-// Count how many items a user has interacted with (all types)
-$totalInteractions = $user->interactions()->count();
+// Or use the built-in scope
+$count = Like::withModelType(Post::class)
+    ->where('type', 'like')
+    ->count();
+
+// A specific user's likes
+$userLikes = Like::where('user_id', 1)
+    ->where('type', 'like')
+    ->count();
 ```
 
-## Aggregating Data
-
-### Get Most Liked Content
+## Aggregating by type
 
 ```php
-// Get top 5 most liked posts
-$mostLiked = Post::withCount('likes')
-    ->orderBy('likes_count', 'desc')
-    ->take(5)
-    ->get();
-```
-
-### Get Interaction Statistics
-
-```php
-// Get interaction statistics for a model
-$stats = [
-    'total_likes' => $post->likes()->count(),
-    'total_dislikes' => $post->dislikes()->count(),
-    'total_loves' => $post->loves()->count(),
-    'interaction_score' => $post->likes()->count() - $post->dislikes()->count(),
-];
-```
-
-### Group Interactions by Type
-
-```php
-// Group interactions by type
-$interactionTypes = $post->interactions()
+// Interaction breakdown for one model ([type => count])
+$breakdown = $post->likes()
     ->select('type', \DB::raw('count(*) as total'))
     ->groupBy('type')
     ->pluck('total', 'type');
 
-// Example output: ['like' => 5, 'dislike' => 2, 'love' => 3]
+// Example: ['like' => 5, 'dislike' => 2, 'love' => 3]
 ```
 
-## Performance Optimization
-
-### Cache Interaction Counts
-
-For frequently accessed counts, consider caching the results:
+## Most-liked content
 
 ```php
-use Illuminate\Support\Facades\Cache;
+// Top 5 posts by like count
+$mostLiked = Post::query()
+    ->withCount('likesTo as likes_count')
+    ->orderBy('likes_count', 'desc')
+    ->take(5)
+    ->get();
 
-function getLikeCount($postId)
-{
-    $cacheKey = "post_{$postId}_like_count";
-    $minutes = 60; // Cache for 1 hour
-    
-    return Cache::remember($cacheKey, $minutes, function () use ($postId) {
-        return Post::find($postId)->likes()->count();
-    });
-}
-
-// Invalidate cache when interactions change
-Cache::forget("post_{$postId}_like_count");
-```
-
-### Batch Counting
-
-For counting across multiple models, use the query builder:
-
-```php
-// Get like counts for multiple posts at once
-$postIds = [1, 2, 3, 4, 5];
-$likeCounts = \DB::table('likes')
-    ->select('model_id', \DB::raw('count(*) as total'))
-    ->where('model_type', Post::class)
-    ->whereIn('model_id', $postIds)
-    ->where('type', 'like')
-    ->groupBy('model_id')
-    ->pluck('total', 'model_id');
-```
-
-## Common Use Cases
-
-### Displaying Interaction Counts
-
-In your Blade views:
-
-```blade
-<div class="interactions">
-    <span class="likes">
-        <i class="fa fa-thumbs-up"></i>
-        <span>{{ $post->likes_count }} Likes</span>
-    </span>
-    
-    <span class="dislikes">
-        <i class="fa fa-thumbs-down"></i>
-        <span>{{ $post->dislikes_count }}</span>
-    </span>
-    
-    <span class="loves">
-        <i class="fa fa-heart"></i>
-        <span>{{ $post->loves_count }}</span>
-    </span>
-</div>
-```
-
-### Sorting by Popularity
-
-```php
-// Get posts sorted by interaction score (likes - dislikes)
-$popularPosts = Post::withCount(['likes', 'dislikes'])
-    ->selectRaw('posts.*, (SELECT COUNT(*) FROM likes WHERE likes.model_id = posts.id AND likes.type = ?) - (SELECT COUNT(*) FROM likes WHERE likes.model_id = posts.id AND likes.type = ?) as interaction_score', 
-        ['like', 'dislike'])
-    ->orderBy('interaction_score', 'desc')
+// Top 5 by total interactions
+$mostInteracted = Post::query()
+    ->withCount('likes as interactions_count')
+    ->orderBy('interactions_count', 'desc')
+    ->take(5)
     ->get();
 ```
 
-## Performance Considerations
+## Caching counts
 
-1. **Indexing**: Ensure you have proper database indexes on:
-   - `model_id` and `model_type` for polymorphic relationships
-   - `user_id` for user lookups
-   - `type` for filtering by interaction type
+Counts are plain `COUNT` queries, but you may still want to cache hot ones:
 
-2. **Eager Loading**: Always use eager loading when working with multiple models
+```php
+use Illuminate\Support\Facades\Cache;
+use CSlant\LaravelLike\Models\Like;
 
-3. **Selective Counting**: Only count what you need, especially in loops
+function getLikeCount($postId): int
+{
+    return Cache::remember("post_{$postId}_like_count", 3600, function () use ($postId) {
+        return Like::where('model_id', $postId)
+            ->where('model_type', Post::class)
+            ->where('type', 'like')
+            ->count();
+    });
+}
+```
 
-4. **Pagination**: For large datasets, always use pagination
+Invalidate the cache by listening to standard Eloquent events:
 
-## Troubleshooting
+```php
+use CSlant\LaravelLike\Models\Like;
+use Illuminate\Support\Facades\Cache;
 
-### Common Issues
+Like::saved(function (Like $like) {
+    Cache::forget("post_{$like->model_id}_like_count");
+});
 
-1. **Slow Queries**: Check your database indexes and query execution plans
-2. **Incorrect Counts**: Clear your cache if using caching
-3. **Missing Data**: Verify your model is using the `HasLike` trait
+Like::deleted(function (Like $like) {
+    Cache::forget("post_{$like->model_id}_like_count");
+});
+```
+
+## Performance notes
+
+- Every count above runs exactly **one** `SELECT COUNT(...)` query — no N+1.
+- For listings, always prefer `withCount()` over calling `likesCount()` per item.
+- See [Performance](performance.md) for the full picture.
 
 ## Next Steps
 
-- Learn how to [filter by interaction counts](filtering_by_like_count.md)
-- Explore [advanced query scopes](query_scopes.md)
-- Discover how to [customize interactions](customizing_user_interaction.md)
-
-For more advanced usage, refer to the [GitHub Repository](https://github.com/cslant/laravel-like).
+- [Filtering by interaction count](filtering_by_like_count.md) — sort content by popularity
+- [Query scopes](query_scopes.md) — advanced queries
+- [Customizing interactions](customizing_user_interaction.md) — extend the interaction model
