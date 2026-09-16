@@ -15,16 +15,16 @@ erDiagram
     User ||--o{ Like : "creates"
     Like }o--|| Model : "points to (morph)"
     Like {
-        int|string id PK "auto-increment or UUID"
-        int|string user_id FK "foreign key to users"
-        int|string model_id "polymorphic"
+        int id PK "auto-increment, or UUID string"
+        int user_id FK "foreign key to users"
+        int model_id "polymorphic; type matches parent key"
         string model_type "polymorphic"
-        string type "'like' | 'dislike' | 'love'"
+        string type "like, dislike or love"
         timestamp created_at
         timestamp updated_at
     }
     Model {
-        int|string id
+        int id "auto-increment, or UUID string"
         string name
     }
 ```
@@ -71,16 +71,16 @@ All mutations above run inside `DB::transaction`.
 
 ```mermaid
 graph TD
-    A[Post / Content Model] -- HasLike / HasLove --> B[InteractionRelationship trait]
-    B -- like() / dislike() / toggle() --> C[LikeManager singleton]
-    B -- likes() morphMany --> D[Like Eloquent Model]
-    B -- likesTo / dislikesTo / lovesTo --> D
-    C -- wraps --> D
-    E[User model] -- UserHasInteraction --> F[likes() hasMany]
+    A["Post / Content Model"] -- "HasLike / HasLove" --> B["InteractionRelationship trait"]
+    B -- "like() / dislike() / toggle()" --> C["LikeManager singleton"]
+    B -- "likes() morphMany" --> D["Like Eloquent Model"]
+    B -- "likesTo / dislikesTo / lovesTo" --> D
+    C -- "wraps" --> D
+    E["User model"] -- "UserHasInteraction" --> F["likes() hasMany"]
     F --> D
-    G["Like / Love Facade"] -- proxies --> C
-    D -- relationships --> H[User BelongsTo]
-    D -- relationships --> I[Model MorphTo]
+    G["Like / Love Facade"] -- "proxies" --> C
+    D -- "relationships" --> H["User BelongsTo"]
+    D -- "relationships" --> I["Model MorphTo"]
 ```
 
 - **`LikeManager`** — the single service behind all actions; binds as `CSlant\LaravelLike\Contracts\LikeManager`.
