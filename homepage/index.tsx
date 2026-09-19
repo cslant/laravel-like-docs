@@ -9,6 +9,13 @@ import Feature from "@site/repos/laravel-like-docs/homepage/feature";
 import React, { JSX } from "react";
 import { useMouseGlow } from '@site/src/components/useMouseGlow';
 import MouseGlowOverlay from '@site/src/components/MouseGlowOverlay';
+import SoftCard from '@site/src/components/softui/SoftCard';
+import StatCounter from '@site/src/components/softui/StatCounter';
+import SectionHeader from '@site/src/components/softui/SectionHeader';
+import StepCard from '@site/src/components/softui/StepCard';
+import CtaBanner from '@site/src/components/softui/CtaBanner';
+import FaqAccordion from '@site/src/components/softui/FaqAccordion';
+import softui from '@site/src/components/softui/softui.module.css';
 
 const HeaderData = {
   title: "Documentation For Laravel Like Package",
@@ -19,6 +26,61 @@ const HeaderData = {
   startButtonLink: "/laravel-like/introduction",
   startButtonLabel: "🚀 Get Started",
 };
+
+const stats = [
+  { value: 23, emoji: "📄", label: "Doc pages" },
+  { value: 3, emoji: "💖", label: "Interaction types" },
+  { value: 100, suffix: "%", emoji: "💚", label: "Open source" },
+  { value: 3, emoji: "🚀", label: "Laravel majors supported" },
+];
+
+const quickSteps = [
+  {
+    step: 1,
+    title: "Install via Composer",
+    description: "The package registers its service provider automatically via package auto-discovery.",
+    code: "composer require cslant/laravel-like",
+  },
+  {
+    step: 2,
+    title: "Publish config & migrate",
+    description: "Publish config/like.php and the likes table migrations, then migrate.",
+    code: 'php artisan vendor:publish --provider="CSlant\\LaravelLike\\Providers\\LikeServiceProvider"\nphp artisan migrate',
+  },
+  {
+    step: 3,
+    title: "Add the trait",
+    description: "Use the provided trait on your model to enable interactions instantly.",
+  },
+  {
+    step: 4,
+    title: "Start interacting",
+    description: "Like, dislike or love from anywhere — Like::like($post), isLiked(), toggle() and more.",
+  },
+];
+
+const faqs = [
+  {
+    question: "Which PHP and Laravel versions are supported?",
+    answer:
+      "Laravel Like supports PHP ^8.2 (8.2 – 8.5) and Laravel 11, 12 and 13. Laravel 13 requires PHP 8.3 or newer.",
+  },
+  {
+    question: "Is the vendor:publish step required?",
+    answer:
+      "Yes. It is required — it publishes config/like.php and the migrations for the likes table, including the composite lookup index.",
+  },
+  {
+    question: "Can a user like the same model twice?",
+    answer:
+      "No. The package enforces a single-active invariant per user per model, enforced transactionally — calling like() again is idempotent and never duplicates rows.",
+  },
+  {
+    question: "Which models can interact?",
+    answer:
+      "Any Eloquent model. Interactions use polymorphic relationships, so there is no schema coupling and no N+1 queries.",
+  },
+];
 
 function HomepageHeader() {
   const { title, description, subDescription, tags, startButtonLink, startButtonLabel } = HeaderData;
@@ -97,30 +159,79 @@ function HomepageHeader() {
   );
 }
 
+function StatsBar() {
+  return (
+    <section className="home-page__section">
+      <div className="container">
+        <div className={softui.grid4}>
+          {stats.map((stat, idx) => (
+            <SoftCard key={idx} delay={idx * 0.1}>
+              <StatCounter {...stat} delay={idx * 0.1} />
+            </SoftCard>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function QuickStart() {
+  return (
+    <section className="home-page__section">
+      <div className="container">
+        <SectionHeader
+          title="Get Started in Four Steps"
+          subtitle="From composer require to your first like — everything you need is below."
+          accent="linear-gradient(135deg, #2e8555, #25c2a0)"
+        />
+        <div className={softui.grid4}>
+          {quickSteps.map((step, idx) => (
+            <StepCard key={idx} step={step.step} title={step.title} description={step.description} code={step.code} delay={idx * 0.12} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FaqSection() {
+  return (
+    <section className="home-page__section">
+      <div className="container">
+        <SectionHeader title="Frequently Asked Questions" subtitle="Quick answers to the questions Laravel developers ask most." accent="linear-gradient(135deg, #2e8555, #25c2a0)" />
+        <FaqAccordion items={faqs} />
+      </div>
+    </section>
+  );
+}
+
 export default function LaravelLikePackageHome(): JSX.Element {
   return (
     <Layout title="Home Page" description="Laravel Like Package Cslant Documentation">
       <HomepageHeader />
       <main>
+        <StatsBar />
         <section className="home-page__features">
           <div className="container">
-            <hr className="section-divider" />
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <h2 className="section-title-fancy" style={{
-                background: 'linear-gradient(135deg, #2e8555, #25c2a0)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}>
-                ✨ Key Features
-              </h2>
-              <p className="section-subtitle-fancy">
-                Everything you need to add social interaction features to your Laravel app.
-              </p>
-            </div>
-            <div className="row home-page__container">
-              <Feature/>
-            </div>
+            <SectionHeader
+              title="✨ Key Features"
+              subtitle="Everything you need to add social interaction features to your Laravel app."
+              accent="linear-gradient(135deg, #2e8555, #25c2a0)"
+            />
+            <Feature />
+          </div>
+        </section>
+        <QuickStart />
+        <FaqSection />
+        <section className="home-page__section">
+          <div className="container">
+            <CtaBanner
+              title="Add social interactions to your Laravel app"
+              subtitle="Like, dislike and love with one package — idempotent, strict and Laravel-native."
+              accent="linear-gradient(135deg, #2e8555, #25c2a0)"
+              primary={{ label: "🚀 Get Started", href: "/laravel-like/introduction" }}
+              secondary={{ label: "⭐ GitHub Repository", href: "https://github.com/cslant/laravel-like", external: true }}
+            />
           </div>
         </section>
       </main>

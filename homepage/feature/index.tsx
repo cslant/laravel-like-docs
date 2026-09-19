@@ -1,95 +1,62 @@
-import React, { useEffect, useRef, useState } from "react";
-import "../../assets/styles/feature/style.scss";
+import React, { JSX } from 'react';
+import SoftCard from '@site/src/components/softui/SoftCard';
+import softui from '@site/src/components/softui/softui.module.css';
 
 type FeatureItem = {
   title: string;
   emoji: string;
-  description: React.ReactNode;
+  description: string;
 };
 
 const FeatureList: FeatureItem[] = [
   {
-    title: "Easy to Use",
-    emoji: "✨",
-    description: (
-      <>
-        You can easily integrate this package into your Laravel application. The
-        package is designed to be user-friendly and requires minimal setup.
-      </>
-    ),
+    title: 'Easy to Use',
+    emoji: '✨',
+    description:
+      'Install via Composer, add the trait and start liking — automatic service provider registration, minimal setup.',
   },
   {
-    title: "Advanced Customization",
-    emoji: "⚙️",
-    description: (
-      <>
-        Customize the package to suit your needs. You can configure the package
-        to work with different types of interactions and events.
-      </>
-    ),
+    title: 'Multiple Interaction Types',
+    emoji: '💖',
+    description:
+      'Like, dislike and love out of the box, or extend to your own interaction types with the config.',
   },
   {
-    title: "Multiple Interaction Types",
-    emoji: "💖",
-    description: (
-      <>
-        The package supports various interaction types, including likes,
-        dislikes, and loves. Or you can create your own custom interactions.
-      </>
-    ),
+    title: 'Polymorphic & Eloquent-native',
+    emoji: '🧩',
+    description:
+      'Works with any Eloquent model through polymorphic relationships — no schema coupling.',
+  },
+  {
+    title: 'Idempotent by Design',
+    emoji: '🛡️',
+    description:
+      'Single-active invariant per user per model, enforced transactionally. Calling like() twice never duplicates.',
+  },
+  {
+    title: 'Strict Counting',
+    emoji: '⚡',
+    description:
+      'Single COUNT / EXISTS queries, batch APIs for whole collections, and optional config-driven caching.',
+  },
+  {
+    title: 'UUID Support',
+    emoji: '🆔',
+    description:
+      'Switch to UUID primary keys with a single config flag — perfect for distributed and sync-heavy apps.',
   },
 ];
 
-function FeatureLayout({
-  title,
-  emoji,
-  description,
-  index,
-}: FeatureItem & { index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(el);
-        }
-      },
-      { threshold: 0.15 }
-    );
-    observer.observe(el);
-    return () => observer.unobserve(el);
-  }, []);
-
+export default function Feature(): JSX.Element {
   return (
-    <div
-      ref={ref}
-      className="col col--3 feature__container"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0)" : "translateY(24px)",
-        transition: `opacity 0.5s ease ${index * 0.15}s, transform 0.5s ease ${index * 0.15}s`,
-      }}
-    >
-      <div className="text--center">
-        <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>{emoji}</div>
-        <h3>{title}</h3>
-        <p>{description}</p>
-      </div>
-    </div>
-  );
-}
-
-export default function Feature() {
-  return (
-    <>
-      {FeatureList.map((props, idx) => (
-        <FeatureLayout key={idx} index={idx} {...props} />
+    <div className={softui.grid3}>
+      {FeatureList.map((feature, idx) => (
+        <SoftCard key={idx} delay={idx * 0.1}>
+          <div style={{ fontSize: '2.2rem', marginBottom: '0.6rem' }}>{feature.emoji}</div>
+          <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.4rem' }}>{feature.title}</h3>
+          <p className="m-0">{feature.description}</p>
+        </SoftCard>
       ))}
-    </>
+    </div>
   );
 }

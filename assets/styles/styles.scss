@@ -5,6 +5,11 @@
 }
 
 .home-page {
+  &__section {
+    padding: 2.5rem 0;
+    position: relative;
+  }
+
   &__container {
     justify-content: center;
     gap: 30px;
@@ -16,7 +21,7 @@
   }
 
   &__features {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     padding-top: 20px;
   }
 }
@@ -25,7 +30,10 @@
   padding: 4rem 0 3rem;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 20%, #f0fdf4 50%, #ecfdf5 80%, #f5f3ff 100%);
+  background:
+    radial-gradient(ellipse at top right, rgba(46, 133, 85, 0.16), transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(37, 194, 160, 0.14), transparent 60%),
+    linear-gradient(135deg, #eef1f6 0%, #edf3ec 30%, #ecfdf5 100%);
 
   &::before {
     content: '';
@@ -101,6 +109,11 @@
         &::after {
           left: 100%;
         }
+      }
+
+      &:active {
+        box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2), inset -2px -2px 5px rgba(255, 255, 255, 0.3);
+        transform: translateY(0);
       }
     }
   }
@@ -193,7 +206,10 @@
 }
 
 [data-theme="dark"] .main_header.laravel_like_header {
-  background: linear-gradient(135deg, #0c1f17 0%, #0f1f1a 20%, #0c1f17 50%, #0f1f1a 80%, #0f0a2e 100%);
+  background:
+    radial-gradient(ellipse at top right, rgba(46, 133, 85, 0.2), transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(37, 194, 160, 0.16), transparent 60%),
+    linear-gradient(135deg, #14161c 0%, #151a15 40%, #0f1f1a 100%);
 }
 
 @keyframes floatOrb {
